@@ -32,7 +32,6 @@ export class ViewManager {
         this.#initializeRenderer()
         this.#initializeControls()
         this.#initializeResizer()
-        this.#initializeFullScreen()
     }
 
     #initializeCamera () {
@@ -54,10 +53,8 @@ export class ViewManager {
         window.addEventListener('resize', this.#update)
     }
 
-    #initializeFullScreen () {
-        window.addEventListener('dblclick', () => {
-    
-            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+    toggleFullScreen () {
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
         
             if(!fullscreenElement) {
                 if (this.#canvas.requestFullscreen) {
@@ -72,8 +69,8 @@ export class ViewManager {
                     document.webkitExitFullscreen()
                 }
             }
-        })
     }
+
 
     #updateSizes () {
         this.#windowWidth = window.innerWidth
