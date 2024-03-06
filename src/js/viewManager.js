@@ -21,7 +21,6 @@ export class ViewManager {
 
     constructor (fieldWidth, fieldHeight, fieldTimeHeight, cameraFOV = 30, fieldMargin = 0) {
         this.#canvas = document.querySelector('#game')
-        this.#controls.enableDamping = true
         this.#fieldWidth = fieldWidth
         this.#fieldHeight = fieldHeight
         this.#fieldTimeHeight = fieldTimeHeight
@@ -50,7 +49,48 @@ export class ViewManager {
     }
 
     #initializeResizer () {
-        window.addEventListener('resize', this.#update)
+        window.addEventListener('resize', () => {
+            this.#update()
+        })
+    }
+
+
+    #updateSizes () {
+        this.#windowWidth = window.innerWidth
+        this.#windowHeight = window.innerHeight
+        this.#aspect = this.#windowWidth / this.#windowHeight
+        const width = this.#fieldWidth + 2 * this.#fieldMargin
+        const height = this.#fieldHeight + 2 * this.#fieldMargin
+        const fieldAspect = width / height
+        this.#fullFieldHeight = fieldAspect < this.#aspect ? height : width / this.#aspect
+        this.#cameraDistanceToField = this.#fullFieldHeight / (2 * Math.tan(this.#cameraFOV * Math.PI / 360))
+        this.#cameraFarEnd = this.#fieldTimeHeight + this.#cameraDistanceToField
+        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#fieldTimeHeight)
+    }
+
+    #updateCamera () {
+        this.#camera.aspect = this.#aspect
+        // TODO: rework update camera position and orientation
+        this.#camera.position.x = 0
+        this.#camera.position.y = 0
+        this.#camera.position.z = this.#cameraDistanceToField
+        this.#camera.lookAt(new THREE.Vector3(0, 0, 0))
+        this.#camera.updateProjectionMatrix()
+    }
+
+    #updateRenderer () {
+        this.#renderer.setSize(this.#windowWidth, this.#windowHeight)
+        this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    }
+
+    #update () {
+        this.#updateSizes()
+        this.#updateCamera()
+        this.#updateRenderer()
+    }
+
+    getCamera () {
+        return this.#camera
     }
 
     toggleFullScreen () {
@@ -71,41 +111,7 @@ export class ViewManager {
             }
     }
 
-
-    #updateSizes () {
-        this.#windowWidth = window.innerWidth
-        this.#windowHeight = window.innerHeight
-        this.#aspect = this.#windowWidth / this.#windowHeight
-        const width = this.#fieldWidth + 2 * this.#fieldMargin
-        const height = this.#fieldHeight + 2 * this.#fieldMargin
-        const fieldAspect = width / height
-        this.#fullFieldHeight = fieldAspect < this.#aspect ? height : width / this.#aspect
-        this.#cameraDistanceToField = this.#fullFieldHeight / (2 * Math.tan(this.#cameraFOV * Math.PI / 360))
-        this.#cameraFarEnd = this.#fieldTimeHeight + this.#cameraDistanceToField
-        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#fieldTimeHeight)
-    }
-
-    #updateCamera () {
-        camera.aspect = this.#aspect
-        camera.position.x = 0
-        camera.position.y = 0
-        camera.position.z = this.#cameraDistanceToField
-        camera.lookAt(new THREE.Vector3(0, 0, 0))
-        camera.updateProjectionMatrix()
-    }
-
-    #updateRenderer () {
-        this.#renderer.setSize(this.#windowWidth, this.#windowHeight)
-        this.#renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    }
-
-    #update () {
-        this.#updateSizes()
-        this.#updateCamera()
-        this.#updateRenderer()
-    }
-
-    getCamera () {
-        return this.#camera
+    render (scene) {
+        this.#renderer.render(scene, this.#camera)
     }
 }

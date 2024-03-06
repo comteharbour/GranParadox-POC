@@ -1,4 +1,4 @@
-class ControlsManager {
+export class ControlsManager {
 
     #toggleFullScreen
 
@@ -10,6 +10,12 @@ class ControlsManager {
         window.addEventListener('dblclick', () => {
             this.#toggleFullScreen = true
         })
+    }
+
+    getInputs () {
+        return {
+            toggleFullScreen: this.#toggleFullScreen
+        }
     }
 
     tick () {
