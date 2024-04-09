@@ -9,16 +9,33 @@ export default class TimeSpriteTickData {
     #HP
     #justTeleported
 
-    constructor (mainTimeLineEpoch = 0, position2D = new Vector2(), speed2D = new Vector2(), rotation = 0, rotationSpeed = 0, HP = 1) {
+    /**
+     * 
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} data - All the supported data in TimeSpriteTickData
+     */
+    constructor (data) {
+        // set default values
+        const mainTimeLineEpoch = data.mainTimeLineEpoch ? data.mainTimeLineEpoch : 0
+        const position2D = data.position2D ? data.position2D : new Vector2()
+        const speed2D = data.speed2D ? data.speed2D : new Vector2()
+        const rotation = data.rotation ? data.rotation : 0
+        const rotationSpeed = data.rotationSpeed ? data.rotationSpeed : 0
+        const HP = data.HP ? data.HP : 1
+
+        // check validity
         this.#errorMainTimeLineEpoch(mainTimeLineEpoch)
         this.#errorPosition2D(position2D)
         this.#errorSpeed2D(speed2D)
         this.#errorRotation(rotation)
         this.#errorRotationSpeed(rotationSpeed)
         this.#errorHP(HP)
-        this.#position2D = position2D
+
+        // initialize values
         this.#mainTimeLineEpoch = mainTimeLineEpoch
+        this.#position2D = position2D
+        this.#speed2D = speed2D
         this.#rotation = rotation
+        this.#rotationSpeed = rotationSpeed
         this.#HP = HP
         this.#justTeleported = false
     }

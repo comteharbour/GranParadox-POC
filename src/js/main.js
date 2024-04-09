@@ -1,7 +1,8 @@
 import * as THREE from 'three'
-import { TimeSprite } from './timeSprite.js'
+import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
+import TimeSprite from './TimeSprite/timeSprite.js'
 
 const scene = new THREE.Scene()
 
@@ -30,15 +31,18 @@ scene.add(mesh)
 
 const steps = 1000
 const spriteBounds = [new THREE.Vector2(-5, -5), new THREE.Vector2(-5, 5), new THREE.Vector2(5, 5), new THREE.Vector2(5, -5)]
-const timeSprite = new TimeSprite('test', spriteBounds, steps, 1)
+const oldTimeSprite = new OldTimeSprite('test', spriteBounds, steps, 1)
 for (let i = 0; i < steps; i++) {
     const position = new THREE.Vector2(0, 0)
     const rotation = Math.PI * i / steps
-    timeSprite.setStep(i, position, rotation)
+    oldTimeSprite.setStep(i, position, rotation)
 }
 
-timeSprite.createMesh()
-timeSprite.add(scene)
+oldTimeSprite.createMesh()
+oldTimeSprite.add(scene)
+
+const timeSprite = new TimeSprite({})
+console.log(timeSprite.selfTimeLineData)
 
 /**
  * Animate

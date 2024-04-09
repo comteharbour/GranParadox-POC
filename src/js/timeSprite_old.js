@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-export class TimeSprite {
+export default class TimeSprite {
 
     #steps // positive integer
     #stepHeight // float

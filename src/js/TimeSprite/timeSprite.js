@@ -1,82 +1,65 @@
-import TimeSpriteTickData from './timeSpriteTickData'
+import { Vector2 } from 'three'
+import TimeSpriteTickData from './timeSpriteTickData.js'
 
-export class TimeSprite {
+export default class TimeSprite {
     #selfTimeLineData = []
-
-    constructor (
-        mainTimeLineEpoch = 0,
-        position2D = new Vector2(),
-        speed2D = new Vector2(),
-        rotation = 0,
-        rotationSpeed = 0,
-        HP = 1
-    ) {
-        this.newData(0, mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP)
+    get selfTimeLineData () {
+        return this.#selfTimeLineData
     }
 
-    newData (
-        selfTimelineEpoch = undefined,
-        mainTimeLineEpoch = undefined,
-        position2D = undefined,
-        speed2D = undefined,
-        rotation = undefined,
-        rotationSpeed = undefined,
-        HP = undefined,
-        justTeleported = false
-    ) {
+    /**
+     * 
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} tickData
+     */
+    constructor (tickData) {
+        this.newData(0, tickData)
+    }
+
+    /**
+     * 
+     * @param {number} selfTimelineEpoch - measured in ticks
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} data
+     * @returns 
+     */
+    newData (selfTimelineEpoch, data) {
         if (this.#selfTimeLineData.length == 0) {
-            this.#selfTimeLineData[0] = new TimeSpriteTickData(mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported)
+            this.#selfTimeLineData[0] = new TimeSpriteTickData(data)
             return
         }
 
         const latestSelfEpoch = this.#selfTimeLineData.length
         if (!selfTimelineEpoch || selfTimelineEpoch == latestSelfEpoch) {
-            this.#extrapolateLastTickData(selfTimelineEpoch, mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported)
+            this.#extrapolateLastTickData(selfTimelineEpoch, data)
             return
         }
 
         if (selfTimelineEpoch < latestSelfEpoch && selfTimelineEpoch >= 0) {
-            this.#updateTickData(selfTimelineEpoch, mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported)
+            this.#updateTickData(selfTimelineEpoch, data)
             return
         }
     }
 
-    #updateTickData (
-        selfTimelineEpoch,
-        mainTimeLineEpoch = undefined,
-        position2D = undefined,
-        speed2D = undefined,
-        rotation = undefined,
-        HP = undefined,
-        justTeleported = false
-    ) {
-        const data = this.#selfTimeLineData[selfTimelineEpoch]
-        if (!!mainTimeLineEpoch) data.mainTimeLineEpoch = mainTimeLineEpoch
-        if (!!position2D) data.position2D = position2D
-        if (!!speed2D) data.speed2D = speed2D
-        if (!!rotation) data.rotation = rotation
-        if (!!HP) data.HP = HP
-        if (justTeleported) data.justTeleported = true
+    #updateTickData (selfTimelineEpoch, data) {
+        const oldData = this.#selfTimeLineData[selfTimelineEpoch]
+        if (!!data.mainTimeLineEpoch) oldData.mainTimeLineEpoch = mainTimeLineEpoch
+        if (!!data.position2D) oldData.position2D = position2D
+        if (!!data.speed2D) oldData.speed2D = speed2D
+        if (!!data.rotation) oldData.rotation = rotation
+        if (!!data.HP) oldData.HP = HP
+        if (data.justTeleported) oldData.justTeleported = true
     }
 
-    #extrapolateLastTickData (selfTimelineEpoch,
-        mainTimeLineEpoch = undefined,
-        position2D = undefined,
-        speed2D = undefined,
-        rotation = undefined,
-        rotationSpeed = undefined,
-        HP = undefined,
-        justTeleported = false
-    ) {
+    #extrapolateLastTickData (selfTimelineEpoch, data) {
         const lastData = this.#selfTimeLineData[selfTimelineEpoch - 1]
-        const newMainTimeLineEpoch = !!mainTimeLineEpoch ? mainTimeLineEpoch : lastData.mainTimeLineEpoch + 1
-        const newPosition2D = !!position2D ? position2D : lastData.position2D + lastData.speed2D
-        const newSpeed2D = !!speed2D ? speed2D : lastData.speed2D
-        const newRotation = !!rotation ? rotation : lastData.rotation + lastData.rotationSpeed
-        const newRotationSpeed = !!rotationSpeed ? rotationSpeed : lastData.rotationSpeed
-        const newHP = !!HP ? HP : lastData.HP
+        const mainTimeLineEpoch = !!data.mainTimeLineEpoch ? data.mainTimeLineEpoch : lastData.mainTimeLineEpoch + 1
+        const position2D = !!data.position2D ? data.position2D : lastData.position2D + lastData.speed2D
+        const speed2D = !!data.speed2D ? data.speed2D : lastData.speed2D
+        const rotation = !!data.rotation ? data.rotation : lastData.rotation + lastData.rotationSpeed
+        const rotationSpeed = !!data.rotationSpeed ? data.rotationSpeed : lastData.rotationSpeed
+        const HP = !!data.HP ? data.HP : lastData.HP
+        const justTeleported = !!data.justTeleported
 
-        const newData = new TimeSpriteTickData(newMainTimeLineEpoch, newPosition2D, newSpeed2D, newRotation, newRotationSpeed, newHP, justTeleported)
-        this.#selfTimeLineData[selfTimelineEpoch] = newData
+        const newData = { mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported}
+        this.#selfTimeLineData[selfTimelineEpoch] = new TimeSpriteTickData(newMainTimeLineEpoch, newData)
     }
 }
