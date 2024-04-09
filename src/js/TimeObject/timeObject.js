@@ -1,5 +1,5 @@
 import { Vector2 } from 'three'
-import TimeSpriteTickData from './timeSpriteTickData.js'
+import TimeObjectTickData from './timeObjectTickData.js'
 
 export default class TimeSprite {
     #selfTimeLineData = []
@@ -23,7 +23,7 @@ export default class TimeSprite {
      */
     newData (selfTimelineEpoch, data) {
         if (this.#selfTimeLineData.length == 0) {
-            this.#selfTimeLineData[0] = new TimeSpriteTickData(data)
+            this.#selfTimeLineData[0] = new TimeObjectTickData(data)
             return
         }
 
@@ -60,6 +60,6 @@ export default class TimeSprite {
         const justTeleported = !!data.justTeleported
 
         const newData = { mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported}
-        this.#selfTimeLineData[selfTimelineEpoch] = new TimeSpriteTickData(newMainTimeLineEpoch, newData)
+        this.#selfTimeLineData[selfTimelineEpoch] = new TimeObjectTickData(newMainTimeLineEpoch, newData)
     }
 }

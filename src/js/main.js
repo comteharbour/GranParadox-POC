@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
-import TimeSprite from './TimeSprite/timeSprite.js'
+import TimeObject from './TimeObject/timeObject.js'
 
 const scene = new THREE.Scene()
 
@@ -41,8 +41,8 @@ for (let i = 0; i < steps; i++) {
 oldTimeSprite.createMesh()
 oldTimeSprite.add(scene)
 
-const timeSprite = new TimeSprite({})
-console.log(timeSprite.selfTimeLineData)
+const timeObject = new TimeObject({})
+console.log(timeObject.selfTimeLineData)
 
 /**
  * Animate
