@@ -3,6 +3,7 @@ import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
 import TimeObject from './TimeObject/timeObject.js'
+import sprites from './assetsManager/sprites.js'
 
 const scene = new THREE.Scene()
 
@@ -43,6 +44,37 @@ oldTimeSprite.add(scene)
 
 const timeObject = new TimeObject({})
 console.log(timeObject.selfTimeLineData)
+
+const loadingManager = new THREE.LoadingManager()
+const textureLoader = new THREE.TextureLoader(loadingManager)
+
+const shipRectangle = new THREE.PlaneGeometry( 40, 50 )
+
+const shipTexture = new THREE.MeshBasicMaterial()
+shipTexture.transparent = true
+shipTexture.side = THREE.DoubleSide
+const shipColorTexture = textureLoader.load(sprites.ship1.colors)
+shipColorTexture.colorSpace = THREE.SRGBColorSpace
+shipTexture.map = shipColorTexture
+const shipAlphaMap = textureLoader.load(sprites.ship1.alpha)
+shipAlphaMap.colorSpace = THREE.SRGBColorSpace
+shipTexture.alphaMap = shipAlphaMap
+const shipSprite = new THREE.Mesh( shipRectangle, shipTexture )
+shipSprite.position.z = 100
+scene.add( shipSprite )
+
+const pastShipTexture = new THREE.MeshBasicMaterial()
+pastShipTexture.transparent = true
+pastShipTexture.side = THREE.DoubleSide
+const pastShipColorTexture = textureLoader.load(sprites.ship1.pastColors)
+pastShipColorTexture.colorSpace = THREE.SRGBColorSpace
+pastShipTexture.map = pastShipColorTexture
+const pastShipAlphaMap = textureLoader.load(sprites.ship1.pastAlpha)
+pastShipAlphaMap.colorSpace = THREE.SRGBColorSpace
+pastShipTexture.alphaMap = pastShipAlphaMap
+const pastShipSprite = new THREE.Mesh( shipRectangle, pastShipTexture )
+pastShipSprite.position.y = -50
+scene.add( pastShipSprite )
 
 /**
  * Animate

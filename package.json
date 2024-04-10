@@ -38,5 +38,8 @@
   },
   "dependencies": {
     "three": "^0.161.0"
+  },
+  "alias": {
+    "assets": "./src/assets"
   }
 }
