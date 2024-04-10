@@ -1,18 +1,80 @@
-import { Vector2 } from 'three'
+import * as THREE from 'three'
 import TimeObjectTickData from './timeObjectTickData.js'
 
-export default class TimeSprite {
+export default class TimeObject {
+    #scene
+    #textureLoader
+    #maps
+    #rectangle
     #selfTimeLineData = []
-    get selfTimeLineData () {
-        return this.#selfTimeLineData
+    #activeSprite
+    #pastSprites = []
+    #pastSpriteDelay = 100 // ticks
+    #zPerTick = 1
+
+
+    /**
+     * 
+     * @param {Scene} scene 
+     * @param {TextureLoader} textureLoader 
+     * @param {{colorMap: image, alphaMap: image, pastColorMap: image, pastAlphaMap: image}} maps
+     * @param {number} width positive integer
+     * @param {number} height positive integer
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} tickData
+     */
+    constructor (scene, textureLoader, width, height, maps, tickData) {
+        this.#scene = scene
+        this.#textureLoader = textureLoader
+        this.#maps = maps
+        this.#rectangle = new THREE.PlaneGeometry( width, height )
+        this.newData(0, tickData)
+        this.#activeSprite = this.#createSprite(maps.colorMap, maps.alphaMap)
+        console.log(this.#selfTimeLineData[0])
+        this.#setSpriteToEpoch(this.#activeSprite, 0)
+        this.#scene.add(this.#activeSprite)
+    }
+
+    #setSpriteToEpoch (sprite, selfTimelineEpoch) {
+        const data = this.#selfTimeLineData[selfTimelineEpoch]
+        sprite.position.x = data.position2D.x
+        sprite.position.y = data.position2D.y
+        sprite.position.z = data.mainTimeLineEpoch * this.#zPerTick
+        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), data.rotation)
     }
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} tickData
+     * @param {image} colorMap
+     * @param {image} alphaMap 
+     * @returns {THREE.Mesh} sprite
      */
-    constructor (tickData) {
-        this.newData(0, tickData)
+    #createSprite (colorMap, alphaMap) {
+        const texture = new THREE.MeshBasicMaterial()
+        texture.transparent = true
+        texture.side = THREE.DoubleSide
+
+        const colorTexture = this.#textureLoader.load(colorMap)
+        colorTexture.colorSpace = THREE.SRGBColorSpace
+        texture.map = colorTexture
+
+        const alphaTexture = this.#textureLoader.load(alphaMap)
+        alphaTexture.colorSpace = THREE.SRGBColorSpace
+        texture.alphaMap = alphaTexture
+
+        const sprite = new THREE.Mesh(this.#rectangle, texture )
+        
+        return sprite
+    }
+
+    #createPastSprite (selfTimelineEpoch) {
+        if (selfTimelineEpoch % this.#pastSpriteDelay == 0) {
+            const index = selfTimelineEpoch / this.#pastSpriteDelay
+            const sprite = this.#createSprite(this.#maps.pastColorMap, this.#maps.pastAlphaMap)
+            sprite.renderOrder = 1
+            const data = this.#selfTimeLineData[selfTimelineEpoch]
+            this.#setSpriteToEpoch(sprite, selfTimelineEpoch)
+            this.#pastSprites[index] = sprite
+        }
     }
 
     /**

@@ -40,6 +40,7 @@
     "three": "^0.161.0"
   },
   "alias": {
+    "src": "./src",
     "assets": "./src/assets"
   }
 }
