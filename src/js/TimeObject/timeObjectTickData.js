@@ -13,14 +13,15 @@ export default class TimeObjectTickData {
      * 
      * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} data - All the supported data in TimeObjectTickData
      */
-    constructor (data) {
+    constructor (data = undefined) {
         // set default values
-        const mainTimeLineEpoch = data.mainTimeLineEpoch ? data.mainTimeLineEpoch : 0
-        const position2D = data.position2D ? data.position2D : new Vector2()
-        const speed2D = data.speed2D ? data.speed2D : new Vector2()
-        const rotation = data.rotation ? data.rotation : 0
-        const rotationSpeed = data.rotationSpeed ? data.rotationSpeed : 0
-        const HP = data.HP ? data.HP : 1
+        const usedData = !!data ? data : {}
+        const mainTimeLineEpoch = usedData.mainTimeLineEpoch ? usedData.mainTimeLineEpoch : 0
+        const position2D = usedData.position2D ? usedData.position2D : new Vector2()
+        const speed2D = usedData.speed2D ? usedData.speed2D : new Vector2()
+        const rotation = usedData.rotation ? usedData.rotation : 0
+        const rotationSpeed = usedData.rotationSpeed ? usedData.rotationSpeed : 0
+        const HP = usedData.HP ? usedData.HP : 1
 
         // initialize values
         this.#mainTimeLineEpoch = mainTimeLineEpoch

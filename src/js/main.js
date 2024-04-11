@@ -5,8 +5,6 @@ import { ControlsManager } from './controlsManager.js'
 import TimeObject from './TimeObject/timeObject.js'
 import sprites from './assetsManager/sprites.js'
 
-console.log(sprites)
-
 const scene = new THREE.Scene()
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
@@ -34,19 +32,36 @@ const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
 
-const steps = 1000
-const spriteBounds = [new THREE.Vector2(-5, -5), new THREE.Vector2(-5, 5), new THREE.Vector2(5, 5), new THREE.Vector2(5, -5)]
-const oldTimeSprite = new OldTimeSprite('test', spriteBounds, steps, 1)
-for (let i = 0; i < steps; i++) {
-    const position = new THREE.Vector2(0, 0)
-    const rotation = Math.PI * i / steps
-    oldTimeSprite.setStep(i, position, rotation)
+// const steps = 1000
+// const spriteBounds = [new THREE.Vector2(-5, -5), new THREE.Vector2(-5, 5), new THREE.Vector2(5, 5), new THREE.Vector2(5, -5)]
+// const oldTimeSprite = new OldTimeSprite('test', spriteBounds, steps, 1)
+// for (let i = 0; i < steps; i++) {
+//     const position = new THREE.Vector2(0, 0)
+//     const rotation = Math.PI * i / steps
+//     oldTimeSprite.setStep(i, position, rotation)
+// }
+
+// oldTimeSprite.createMesh()
+// oldTimeSprite.add(scene)
+
+function data (tick) {
+    const radius = 200
+    const angularSpeed = Math.PI / 200
+    return {
+        position2D: new THREE.Vector2(radius * Math.cos(angularSpeed * tick), radius * Math.sin(angularSpeed * tick)),
+        rotation: angularSpeed * tick + Math.PI / 2,
+        mainTimeLineEpoch: tick
+    }
 }
 
-oldTimeSprite.createMesh()
-oldTimeSprite.add(scene)
+const timeObject = new TimeObject(scene, textureLoader, 40, 50, sprites.ship1)
 
-const timeObject = new TimeObject(scene, textureLoader, 40, 50, sprites.ship1, {mainTimeLineEpoch: 100, rotation: Math.PI / 2})
+let elapsedTicks = 0
+const runTick = () => {
+    timeObject.newData(data(elapsedTicks), elapsedTicks)
+    elapsedTicks++
+}
+setInterval(runTick, 10)
 
 /**
  * Animate
