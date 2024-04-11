@@ -140,9 +140,18 @@ export default class TimeObject {
 
     #setSpriteToSelfEpoch (sprite, selfTimelineEpoch) {
         const data = this.#selfTimeLineData[selfTimelineEpoch]
-        sprite.position.x = data.position2D.x
-        sprite.position.y = data.position2D.y
-        sprite.position.z = data.mainTimeLineEpoch * this.#zPerTick
+        // sprite.position.x = data.position2D.x
+        // sprite.position.y = data.position2D.y
+        // sprite.position.z = data.mainTimeLineEpoch * this.#zPerTick
+        sprite.position.copy(this.#getPointInSpace(data))
         sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), data.rotation)
+    }
+
+    #getPointInSpace(tickData) {
+        return new THREE.Vector3(
+            tickData.position2D.x,
+            tickData.position2D.y,
+            tickData.mainTimeLineEpoch * this.#zPerTick
+        )
     }
 }
