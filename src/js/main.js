@@ -46,7 +46,7 @@ scene.add(mesh)
 
 function data (tick) {
     const radius = 200
-    const angularSpeed = Math.PI / 200
+    const angularSpeed = Math.PI / 300
     return {
         position2D: new THREE.Vector2(radius * Math.cos(angularSpeed * tick), radius * Math.sin(angularSpeed * tick)),
         rotation: angularSpeed * tick + Math.PI / 2,

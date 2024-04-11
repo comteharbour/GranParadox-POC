@@ -9,7 +9,7 @@ export default class TimeObject {
     #selfTimeLineData = []
     #activeSprite
     #pastSprites = []
-    #pastSpriteDelay = 5 // ticks
+    #pastSpriteDelay = 100 // ticks
     #zPerTick = 1
 
 
@@ -108,7 +108,7 @@ export default class TimeObject {
         if (!sprite) {
             sprite = this.#createSprite(this.#maps.pastColorMap, this.#maps.pastAlphaMap)
             sprite.renderOrder = 0
-            this.#pastSprites[selfTimelineEpoch] = sprite
+            this.#pastSprites[index] = sprite
         }
         this.#setSpriteToSelfEpoch(sprite, selfTimelineEpoch)
     }
