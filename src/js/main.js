@@ -56,13 +56,6 @@ function data (tick) {
 
 const timeObject = new TimeObject(scene, textureLoader, 40, 50, sprites.ship1)
 
-let elapsedTicks = 0
-const runTick = () => {
-    timeObject.newData(data(elapsedTicks), elapsedTicks)
-    elapsedTicks++
-}
-setInterval(runTick, 10)
-
 /**
  * Animate
  */
@@ -83,3 +76,14 @@ const tick = () =>
 }
 
 tick()
+
+let lastDate = Date.now()
+let elapsedTicks = 0
+const runTick = () => {
+    let newDate = Date.now()
+    console.log(newDate - lastDate)
+    lastDate = newDate
+    timeObject.newData(data(elapsedTicks), elapsedTicks)
+    elapsedTicks++
+}
+setInterval(runTick, 10)

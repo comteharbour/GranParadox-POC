@@ -11,6 +11,7 @@ export default class TimeObject {
     #pastSprites = []
     #pastSpriteDelay = 100 // ticks
     #zPerTick = 1
+    #line
 
 
     /**
@@ -29,6 +30,7 @@ export default class TimeObject {
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         this.#activeSprite = this.#createSprite(maps.colorMap, maps.alphaMap)
         this.#activeSprite.renderOrder = 1000
+        this.#createLine()
         this.newData(tickData)
     }
 
@@ -50,6 +52,7 @@ export default class TimeObject {
         const usedSelfEpoch = selfTimelineEpoch === undefined ? this.#selfTimeLineData.length : selfTimelineEpoch
         this.#handleNewData(data, usedSelfEpoch)
         this.#handlePastSprite(usedSelfEpoch)
+        this.#handleLine()
     }
 
     #handleNewData (data, selfTimelineEpoch) {
@@ -140,11 +143,21 @@ export default class TimeObject {
 
     #setSpriteToSelfEpoch (sprite, selfTimelineEpoch) {
         const data = this.#selfTimeLineData[selfTimelineEpoch]
-        // sprite.position.x = data.position2D.x
-        // sprite.position.y = data.position2D.y
-        // sprite.position.z = data.mainTimeLineEpoch * this.#zPerTick
         sprite.position.copy(this.#getPointInSpace(data))
         sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), data.rotation)
+    }
+
+    #createLine () {
+        const material = new THREE.LineBasicMaterial({ color: 0x0000ff })
+        const geometry = new THREE.BufferGeometry()
+        this.#line = new THREE.Line( geometry, material )
+        this.#scene.add(this.#line)
+    }
+
+    #handleLine () {
+        // TODO: optimize
+        const points = this.#selfTimeLineData.map(data => this.#getPointInSpace(data))
+        this.#line.geometry.setFromPoints( points )
     }
 
     #getPointInSpace(tickData) {
