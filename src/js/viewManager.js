@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 export class ViewManager {
+    #globalRules
+    #epoch = 0
     #canvas
     #cameraFOV
     #cameraDistanceToField
@@ -19,7 +21,17 @@ export class ViewManager {
     #controls
     #renderer
 
-    constructor (fieldWidth, fieldHeight, fieldTimeHeight, cameraFOV = 30, fieldMargin = 0) {
+    /**
+     * 
+     * @param {{zPerTick: number}} globalRules 
+     * @param {number} fieldWidth 
+     * @param {number} fieldHeight 
+     * @param {number} fieldTimeHeight 
+     * @param {number} cameraFOV 
+     * @param {number} fieldMargin 
+     */
+    constructor (globalRules, fieldWidth, fieldHeight, fieldTimeHeight, cameraFOV = 30, fieldMargin = 0) {
+        this.#globalRules = globalRules
         this.#canvas = document.querySelector('#game')
         this.#fieldWidth = fieldWidth
         this.#fieldHeight = fieldHeight
@@ -31,6 +43,20 @@ export class ViewManager {
         this.#initializeRenderer()
         this.#initializeControls()
         this.#initializeResizer()
+    }
+
+    /**
+     * 
+     * @param {number} epoch 
+     */
+    setEpoch (epoch) {
+        this.#epoch = epoch
+        this.#camera.position.z = this.#cameraDistanceToField + this.#getZeroZ()
+        this.#camera.lookAt(new THREE.Vector3(0, 0, this.#getZeroZ()))
+    }
+
+    #getZeroZ () {
+        return this.#epoch * this.#globalRules.zPerTick
     }
 
     #initializeCamera () {
@@ -70,11 +96,9 @@ export class ViewManager {
 
     #updateCamera () {
         this.#camera.aspect = this.#aspect
-        // TODO: rework update camera position and orientation
         this.#camera.position.x = 0
         this.#camera.position.y = 0
-        this.#camera.position.z = this.#cameraDistanceToField
-        this.#camera.lookAt(new THREE.Vector3(0, 0, 0))
+        this.#camera.lookAt(new THREE.Vector3(0, 0, this.#getZeroZ()))
         this.#camera.updateProjectionMatrix()
     }
 

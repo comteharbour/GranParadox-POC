@@ -14,12 +14,12 @@ const globalRules = { zPerTick: 1 }
 const sizes = {
     fieldWidth: 1500,
     fieldHeight: 1000,
-    fieldTimeHeight: 5000,
+    fieldTimeHeight: 10000,
     fieldMargin: 10,
     cameraFOV: 20,
 }
 
-const viewManager = new ViewManager(sizes.fieldWidth, sizes.fieldHeight, sizes.fieldTimeHeight, sizes.cameraFOV, sizes.fieldMargin)
+const viewManager = new ViewManager(globalRules, sizes.fieldWidth, sizes.fieldHeight, sizes.fieldTimeHeight, sizes.cameraFOV, sizes.fieldMargin)
 scene.add(viewManager.getCamera())
 
 const controlsManager = new ControlsManager()
@@ -63,29 +63,35 @@ const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, spr
  */
 const clock = new THREE.Clock()
 
-const tick = () =>
-{
+// const tick = () =>
+// {
+//     const controls = controlsManager.getInputs()
+//     if (controls.toggleFullScreen) viewManager.toggleFullScreen()
+
+//     controlsManager.tick()
+
+//     // TODO: rework render call
+//     viewManager.render(scene)
+
+//     // Call tick again on the next frame
+//     window.requestAnimationFrame(tick)
+// }
+
+// tick()
+
+let elapsedTicks = 0
+const runTick = () => {
+    timeObject.newData(data(elapsedTicks), elapsedTicks)
+    mesh.position.z = elapsedTicks * globalRules.zPerTick
+
     const controls = controlsManager.getInputs()
     if (controls.toggleFullScreen) viewManager.toggleFullScreen()
 
     controlsManager.tick()
 
     // TODO: rework render call
+    viewManager.setEpoch(elapsedTicks)
     viewManager.render(scene)
-
-    // Call tick again on the next frame
-    window.requestAnimationFrame(tick)
-}
-
-tick()
-
-let lastDate = Date.now()
-let elapsedTicks = 0
-const runTick = () => {
-    let newDate = Date.now()
-    console.log(newDate - lastDate)
-    lastDate = newDate
-    timeObject.newData(data(elapsedTicks), elapsedTicks)
     elapsedTicks++
 }
 setInterval(runTick, 10)
