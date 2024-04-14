@@ -12,34 +12,25 @@ export class ViewManager {
     #windowWidth
     #windowHeight
     #aspect
-    #fieldWidth
-    #fieldHeight
-    #fieldTimeHeight
     #fullFieldHeight
-    #fieldMargin
+    #cameraMargin
     #camera
     #controls
     #renderer
 
     /**
      * 
-     * @param {{zPerTick: number}} globalRules 
-     * @param {number} fieldWidth 
-     * @param {number} fieldHeight 
-     * @param {number} fieldTimeHeight 
+     * @param {{zPerTick: number}} globalRules
      * @param {number} cameraFOV 
-     * @param {number} fieldMargin 
+     * @param {number} cameraMargin 
      */
-    constructor (globalRules, fieldWidth, fieldHeight, fieldTimeHeight, cameraFOV = 30, fieldMargin = 0) {
+    constructor (globalRules, scene, cameraFOV = 30, cameraMargin = 0) {
         this.#globalRules = globalRules
         this.#canvas = document.querySelector('#game')
-        this.#fieldWidth = fieldWidth
-        this.#fieldHeight = fieldHeight
-        this.#fieldTimeHeight = fieldTimeHeight
         this.#cameraFOV = cameraFOV
-        this.#fieldMargin = fieldMargin
+        this.#cameraMargin = cameraMargin
         this.#updateSizes()
-        this.#initializeCamera()
+        this.#initializeCamera(scene)
         this.#initializeRenderer()
         this.#initializeControls()
         this.#initializeResizer()
@@ -59,9 +50,10 @@ export class ViewManager {
         return this.#epoch * this.#globalRules.zPerTick
     }
 
-    #initializeCamera () {
+    #initializeCamera (scene) {
         this.#camera = new THREE.PerspectiveCamera(this.#cameraFOV, this.#aspect, this.#cameraNearEnd, this.#cameraFarEnd)
         this.#updateCamera()
+        scene.add(this.#camera)
     }
 
     #initializeRenderer () {
@@ -85,13 +77,13 @@ export class ViewManager {
         this.#windowWidth = window.innerWidth
         this.#windowHeight = window.innerHeight
         this.#aspect = this.#windowWidth / this.#windowHeight
-        const width = this.#fieldWidth + 2 * this.#fieldMargin
-        const height = this.#fieldHeight + 2 * this.#fieldMargin
+        const width = this.#globalRules.fieldWidth + 2 * this.#cameraMargin
+        const height = this.#globalRules.fieldHeight + 2 * this.#cameraMargin
         const fieldAspect = width / height
         this.#fullFieldHeight = fieldAspect < this.#aspect ? height : width / this.#aspect
         this.#cameraDistanceToField = this.#fullFieldHeight / (2 * Math.tan(this.#cameraFOV * Math.PI / 360))
-        this.#cameraFarEnd = this.#fieldTimeHeight + this.#cameraDistanceToField
-        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#fieldTimeHeight)
+        this.#cameraFarEnd = this.#globalRules.totalTicks + this.#cameraDistanceToField
+        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#globalRules.totalTicks)
     }
 
     #updateCamera () {

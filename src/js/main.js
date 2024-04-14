@@ -9,25 +9,24 @@ const scene = new THREE.Scene()
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
-const globalRules = { zPerTick: 1 }
-
-const sizes = {
+const globalRules = {
+    zPerTick: 1,
+    totalTicks: 3000,
     fieldWidth: 1500,
     fieldHeight: 1000,
-    fieldTimeHeight: 10000,
-    fieldMargin: 10,
-    cameraFOV: 20,
 }
 
-const viewManager = new ViewManager(globalRules, sizes.fieldWidth, sizes.fieldHeight, sizes.fieldTimeHeight, sizes.cameraFOV, sizes.fieldMargin)
-scene.add(viewManager.getCamera())
+const cameraFOV = 20,
+cameraMargin = 10
+
+const viewManager = new ViewManager(globalRules, scene, cameraFOV, cameraMargin)
 
 const controlsManager = new ControlsManager()
 
 /**
  * Object
  */
-const geometry = new THREE.PlaneGeometry(sizes.fieldWidth, sizes.fieldHeight)
+const geometry = new THREE.PlaneGeometry(globalRules.fieldWidth, globalRules.fieldHeight)
 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
 material.wireframe = true
 const mesh = new THREE.Mesh(geometry, material)
@@ -61,7 +60,7 @@ const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, spr
 /**
  * Animate
  */
-const clock = new THREE.Clock()
+// const clock = new THREE.Clock()
 
 // const tick = () =>
 // {
