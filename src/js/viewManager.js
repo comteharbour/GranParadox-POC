@@ -47,7 +47,7 @@ export class ViewManager {
     }
 
     #getZeroZ () {
-        return this.#epoch * this.#globalRules.zPerTick
+        return this.#globalRules.getZAtEpoch(this.#epoch)
     }
 
     #initializeCamera (scene) {
@@ -82,8 +82,8 @@ export class ViewManager {
         const fieldAspect = width / height
         this.#fullFieldHeight = fieldAspect < this.#aspect ? height : width / this.#aspect
         this.#cameraDistanceToField = this.#fullFieldHeight / (2 * Math.tan(this.#cameraFOV * Math.PI / 360))
-        this.#cameraFarEnd = this.#globalRules.totalTicks + this.#cameraDistanceToField
-        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#globalRules.totalTicks)
+        this.#cameraFarEnd = this.#globalRules.getZAtEpoch(this.#globalRules.totalTicks) + this.#cameraDistanceToField
+        this.#cameraNearEnd = Math.max(0.1, this.#cameraDistanceToField - this.#globalRules.getZAtEpoch(this.#globalRules.totalTicks))
     }
 
     #updateCamera () {

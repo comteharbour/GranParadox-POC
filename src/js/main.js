@@ -3,6 +3,7 @@ import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
 import TimeObject from './TimeObject/timeObject.js'
+import Boundary from './boundary.js'
 import sprites from './assetsManager/sprites.js'
 
 const scene = new THREE.Scene()
@@ -10,7 +11,7 @@ const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
 const globalRules = {
-    zPerTick: 1,
+    getZAtEpoch: (epoch) => epoch * 1,
     totalTicks: 3000,
     fieldWidth: 1500,
     fieldHeight: 1000,
@@ -22,15 +23,6 @@ cameraMargin = 10
 const viewManager = new ViewManager(globalRules, scene, cameraFOV, cameraMargin)
 
 const controlsManager = new ControlsManager()
-
-/**
- * Object
- */
-const geometry = new THREE.PlaneGeometry(globalRules.fieldWidth, globalRules.fieldHeight)
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-material.wireframe = true
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
 
 
 // const steps = 1000
@@ -55,6 +47,7 @@ function data (tick) {
     }
 }
 
+const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundary)
 const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 /**
@@ -81,7 +74,7 @@ const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, spr
 let elapsedTicks = 0
 const runTick = () => {
     timeObject.newData(data(elapsedTicks), elapsedTicks)
-    mesh.position.z = elapsedTicks * globalRules.zPerTick
+    boundary.setEpoch(elapsedTicks)
 
     const controls = controlsManager.getInputs()
     if (controls.toggleFullScreen) viewManager.toggleFullScreen()

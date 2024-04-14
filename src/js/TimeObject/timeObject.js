@@ -166,7 +166,7 @@ export default class TimeObject {
         return new THREE.Vector3(
             tickData.position2D.x,
             tickData.position2D.y,
-            tickData.mainTimeLineEpoch * this.#globalRules.zPerTick
+            this.#globalRules.getZAtEpoch(tickData.mainTimeLineEpoch)
         )
     }
 }
