@@ -9,6 +9,8 @@ const scene = new THREE.Scene()
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
+const globalRules = { zPerTick: 1 }
+
 const sizes = {
     fieldWidth: 1500,
     fieldHeight: 1000,
@@ -54,7 +56,7 @@ function data (tick) {
     }
 }
 
-const timeObject = new TimeObject(scene, textureLoader, 40, 50, sprites.ship1)
+const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 /**
  * Animate

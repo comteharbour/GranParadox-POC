@@ -4,13 +4,13 @@ import TimeObjectTickData from './timeObjectTickData.js'
 export default class TimeObject {
     #scene
     #textureLoader
+    #globalRules
     #maps
     #rectangle
     #selfTimeLineData = []
     #activeSprite
     #pastSprites = []
     #pastSpriteDelay = 100 // ticks
-    #zPerTick = 1
     #line
 
 
@@ -19,13 +19,15 @@ export default class TimeObject {
      * @param {Scene} scene 
      * @param {TextureLoader} textureLoader 
      * @param {{colorMap: image, alphaMap: image, pastColorMap: image, pastAlphaMap: image}} maps
+     * @param {{zPerTick}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
      * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} tickData
      */
-    constructor (scene, textureLoader, width, height, maps, tickData) {
+    constructor (scene, textureLoader, globalRules, width, height, maps, tickData) {
         this.#scene = scene
         this.#textureLoader = textureLoader
+        this.#globalRules = globalRules
         this.#maps = maps
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         this.#activeSprite = this.#createSprite(maps.colorMap, maps.alphaMap)
@@ -164,7 +166,7 @@ export default class TimeObject {
         return new THREE.Vector3(
             tickData.position2D.x,
             tickData.position2D.y,
-            tickData.mainTimeLineEpoch * this.#zPerTick
+            tickData.mainTimeLineEpoch * this.#globalRules.zPerTick
         )
     }
 }
