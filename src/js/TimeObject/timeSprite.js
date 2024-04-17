@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import TimeObjectTickData from './timeObjectTickData.js'
+import TimeSpriteTickData from './timeSpriteTickData.js'
 
-export default class TimeObject {
+export default class TimeSprite {
     #scene
     #textureLoader
     #globalRules
@@ -59,7 +59,7 @@ export default class TimeObject {
 
     #handleNewData (data, selfTimelineEpoch) {
         if (this.#selfTimeLineData.length == 0) {
-            this.#selfTimeLineData[0] = new TimeObjectTickData(data)
+            this.#selfTimeLineData[0] = new TimeSpriteTickData(data)
             this.#setSpriteToSelfEpoch(this.#activeSprite, 0)
             return
         }
@@ -79,7 +79,7 @@ export default class TimeObject {
 
     #appendNewTickData (data) {
         const latestSelfEpoch = this.#selfTimeLineData.length
-        this.#selfTimeLineData[latestSelfEpoch] = new TimeObjectTickData(data, latestSelfEpoch)
+        this.#selfTimeLineData[latestSelfEpoch] = new TimeSpriteTickData(data, latestSelfEpoch)
     }
 
     #updateTickData (data, selfTimelineEpoch) {
@@ -103,7 +103,7 @@ export default class TimeObject {
     //     const justTeleported = !!data.justTeleported
 
     //     const newData = { mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported}
-    //     this.#selfTimeLineData[selfTimelineEpoch] = new TimeObjectTickData(newMainTimeLineEpoch, newData)
+    //     this.#selfTimeLineData[selfTimelineEpoch] = new TimeSpriteTickData(newMainTimeLineEpoch, newData)
     // }
 
     #handlePastSprite(selfTimelineEpoch) {

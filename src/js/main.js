@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
-import TimeObject from './TimeObject/timeObject.js'
+import TimeSprite from './TimeObject/timeSprite.js'
 import PhysicalTimeObject from './TimeObject/physicalTimeObject.js'
 import Boundary from './boundary.js'
 import sprites from './assetsManager/sprites.js'
@@ -58,7 +58,7 @@ function data (tick) {
 }
 
 const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundary)
-const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
+const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 /**
  * Animate
@@ -83,7 +83,7 @@ const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, spr
 
 let elapsedTicks = 0
 const runTick = () => {
-    timeObject.newData(data(elapsedTicks), elapsedTicks)
+    timeSprite.newData(data(elapsedTicks), elapsedTicks)
     boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
 
     const controls = controlsManager.getInputs()

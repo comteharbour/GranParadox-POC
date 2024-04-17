@@ -1,6 +1,6 @@
 import { Vector2 } from "three"
 
-export default class TimeObjectTickData {
+export default class TimeSpriteTickData {
     #mainTimeLineEpoch
     #position2D
     #speed2D
@@ -11,7 +11,7 @@ export default class TimeObjectTickData {
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} data - All the supported data in TimeObjectTickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} data - All the supported data in TimeSpriteTickData
      */
     constructor (data = undefined) {
         // set default values
