@@ -22,7 +22,7 @@ export default class TimeObject {
      * @param {{zPerTick}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} tickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} tickData
      */
     constructor (scene, textureLoader, globalRules, width, height, maps, tickData) {
         this.#scene = scene
@@ -162,11 +162,19 @@ export default class TimeObject {
         this.#line.geometry.setFromPoints( points )
     }
 
-    #getPointInSpace(tickData) {
+    _vector3From(vector2, epoch) {
         return new THREE.Vector3(
-            tickData.position2D.x,
-            tickData.position2D.y,
-            this.#globalRules.getZAtEpoch(tickData.mainTimeLineEpoch)
+            vector2.x,
+            vector2.y,
+            this.#globalRules.getZAtEpoch(epoch)
         )
+    }
+    
+    #getPointInSpace(tickData) {
+        return this._vector3From (tickData.position2D, tickData.mainTimeLineEpoch)
+    }
+
+    get selfTimeLineData() {
+        return this.#selfTimeLineData
     }
 }

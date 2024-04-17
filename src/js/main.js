@@ -3,6 +3,7 @@ import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
 import TimeObject from './TimeObject/timeObject.js'
+import PhysicalTimeObject from './TimeObject/physicalTimeObject.js'
 import Boundary from './boundary.js'
 import sprites from './assetsManager/sprites.js'
 
@@ -87,3 +88,6 @@ const runTick = () => {
     elapsedTicks++
 }
 setInterval(runTick, 10)
+
+const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
+new PhysicalTimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {}, hitBox2D, 1)

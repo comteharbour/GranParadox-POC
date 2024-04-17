@@ -11,7 +11,7 @@ export default class TimeObjectTickData {
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} data - All the supported data in TimeObjectTickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} data - All the supported data in TimeObjectTickData
      */
     constructor (data = undefined) {
         // set default values
