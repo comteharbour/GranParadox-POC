@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import TimeSprite from "./timeSprite"
 
-export default class PhysicalTimeObject extends TimeSprite {
+export default class TimeObject extends TimeSprite {
 
     #hitBox2D
     #orientedHitBoxes = []
