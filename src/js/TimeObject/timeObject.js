@@ -14,7 +14,7 @@ export default class TimeObject extends TimeSprite {
      * @param {{zPerTick}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} tickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, continuumIndex: number}} tickData
      */
     constructor (scene, textureLoader, globalRules, width, height, maps, tickData, hitBox2D) {
         super(scene, textureLoader, globalRules, width, height, maps, tickData)

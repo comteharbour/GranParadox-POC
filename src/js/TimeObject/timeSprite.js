@@ -11,7 +11,7 @@ export default class TimeSprite {
     #activeSprite
     #pastSprites = []
     #pastSpriteDelay = 100 // ticks
-    #line
+    #segments = []
 
 
     /**
@@ -22,7 +22,7 @@ export default class TimeSprite {
      * @param {{zPerTick}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} tickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, continuumIndex: number}} tickData
      */
     constructor (scene, textureLoader, globalRules, width, height, maps, tickData) {
         this.#scene = scene
@@ -32,8 +32,7 @@ export default class TimeSprite {
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         this.#activeSprite = this.#createSprite(maps.colorMap, maps.alphaMap)
         this.#activeSprite.renderOrder = 1000
-        this.#createLine()
-        this.newData(tickData)
+        this.newData(tickData, 0)
     }
 
     /**
@@ -46,7 +45,7 @@ export default class TimeSprite {
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, justTeleported: boolean}} data
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, HP: number, continuumIndex: number}} data
      * @param {number} selfTimelineEpoch - measured in ticks
      * @returns 
      */
@@ -54,7 +53,7 @@ export default class TimeSprite {
         const usedSelfEpoch = selfTimelineEpoch === undefined ? this.#selfTimeLineData.length : selfTimelineEpoch
         this.#handleNewData(data, usedSelfEpoch)
         this.#handlePastSprite(usedSelfEpoch)
-        this.#handleLine()
+        this.#handleLine(selfTimelineEpoch)
     }
 
     #handleNewData (data, selfTimelineEpoch) {
@@ -84,12 +83,7 @@ export default class TimeSprite {
 
     #updateTickData (data, selfTimelineEpoch) {
         const oldData = this.#selfTimeLineData[selfTimelineEpoch]
-        if (!!data.mainTimeLineEpoch) oldData.mainTimeLineEpoch = data.mainTimeLineEpoch
-        if (!!data.position2D) oldData.position2D = data.position2D
-        if (!!data.speed2D) oldData.speed2D = data.speed2D
-        if (!!data.rotation) oldData.rotation = data.rotation
-        if (!!data.HP) oldData.HP = data.HP
-        if (data.justTeleported) oldData.justTeleported = true
+        this.#selfTimeLineData[selfTimelineEpoch] = { ...oldData, ...data }
     }
 
     // #extrapolateLastTickData (data, selfTimelineEpoch) {
@@ -149,17 +143,29 @@ export default class TimeSprite {
         sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), data.rotation)
     }
 
-    #createLine () {
-        const material = new THREE.LineBasicMaterial({ color: 0x0000ff })
-        const geometry = new THREE.BufferGeometry()
-        this.#line = new THREE.Line( geometry, material )
-        this.#scene.add(this.#line)
+    #handleLine (selfTimelineEpoch) {
+        if (!this.#hasJustTeleported(selfTimelineEpoch)) {
+            const lastData = this.#selfTimeLineData[selfTimelineEpoch - 1]
+            const lastPoint = this.#getPointInSpace(lastData)
+            const data = this.#selfTimeLineData[selfTimelineEpoch]
+            const point = this.#getPointInSpace(data)
+            this.#createSegment(lastPoint, point, selfTimelineEpoch)
+        }
     }
 
-    #handleLine () {
-        // TODO: optimize (maybe individual lines between ticks)
-        const points = this.#selfTimeLineData.map(data => this.#getPointInSpace(data))
-        this.#line.geometry.setFromPoints( points )
+    #createSegment (lastPoint, point, selfTimelineEpoch) {
+        const material = new THREE.LineBasicMaterial({ color: 0x0000ff })
+        const geometry = new THREE.BufferGeometry().setFromPoints([lastPoint, point])
+        this.#segments[selfTimelineEpoch] = new THREE.Line( geometry, material )
+        this.#scene.add(this.#segments[selfTimelineEpoch])
+    }
+
+    #hasJustTeleported (selfTimelineEpoch) {
+        if (selfTimelineEpoch == 0) return true
+        const mainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch].mainTimeLineEpoch
+        const lastMainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch - 1].mainTimeLineEpoch
+        const hasJustTeleported = mainTimeLineEpoch != lastMainTimeLineEpoch + 1
+        return hasJustTeleported
     }
 
     _vector3From(vector2, epoch) {

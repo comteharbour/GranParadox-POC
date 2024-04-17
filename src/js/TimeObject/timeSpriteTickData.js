@@ -7,21 +7,21 @@ export default class TimeSpriteTickData {
     #rotation
     #rotationSpeed
     #HP
-    #justTeleported
+    #continuumIndex
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, justTeleported: boolean}} data - All the supported data in TimeSpriteTickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, continuumIndex: number}} data - All the supported data in TimeSpriteTickData
      */
-    constructor (data = undefined) {
+    constructor (data = {}) {
         // set default values
-        const usedData = !!data ? data : {}
-        const mainTimeLineEpoch = usedData.mainTimeLineEpoch ? usedData.mainTimeLineEpoch : 0
-        const position2D = usedData.position2D ? usedData.position2D : new Vector2()
-        const speed2D = usedData.speed2D ? usedData.speed2D : new Vector2()
-        const rotation = usedData.rotation ? usedData.rotation : 0
-        const rotationSpeed = usedData.rotationSpeed ? usedData.rotationSpeed : 0
-        const HP = usedData.HP ? usedData.HP : 1
+        const mainTimeLineEpoch = data.mainTimeLineEpoch ? data.mainTimeLineEpoch : 0
+        const position2D = data.position2D ? data.position2D : new Vector2()
+        const speed2D = data.speed2D ? data.speed2D : new Vector2()
+        const rotation = data.rotation ? data.rotation : 0
+        const rotationSpeed = data.rotationSpeed ? data.rotationSpeed : 0
+        const HP = data.HP ? data.HP : 1
+        const continuumIndex = data.continuumIndex ? data.continuumIndex : 0
 
         // initialize values
         this.#mainTimeLineEpoch = mainTimeLineEpoch
@@ -30,7 +30,7 @@ export default class TimeSpriteTickData {
         this.#rotation = rotation
         this.#rotationSpeed = rotationSpeed
         this.#HP = HP
-        this.#justTeleported = false
+        this.#continuumIndex = continuumIndex
     }
 
     get mainTimeLineEpoch() {
@@ -73,12 +73,12 @@ export default class TimeSpriteTickData {
         this.#rotationSpeed = number
     }
 
-    get justTeleported() {
-        return !!this.#justTeleported
+    get continuumIndex() {
+        return !!this.#continuumIndex
     }
 
-    set justTeleported(boolean) {
-        this.#justTeleported = boolean
+    set continuumIndex(index) {
+        this.#continuumIndex = index
     }
 
     get HP() {
