@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import TimeSpriteTickData from './timeSpriteTickData.js'
 
 export default class TimeSprite {
     #scene
@@ -22,7 +21,7 @@ export default class TimeSprite {
      * @param {{zPerTick}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, speed2D: Vector2, rotation: number, rotationSpeed: number, continuumIndex: number}} tickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} tickData
      */
     constructor (scene, textureLoader, globalRules, width, height, maps, tickData) {
         this.#scene = scene
@@ -32,7 +31,13 @@ export default class TimeSprite {
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         this.#activeSprite = this.#createSprite(maps.colorMap, maps.alphaMap)
         this.#activeSprite.renderOrder = 1000
-        this.newData(tickData, 0)
+        const usedTickData = {
+            mainTimeLineEpoch: 0,
+            position2D: new THREE.Vector2(),
+            rotation: 0,
+            ...tickData
+        }
+        this.newData(usedTickData, 0)
     }
 
     /**
@@ -49,41 +54,25 @@ export default class TimeSprite {
      * @param {number} selfTimelineEpoch - measured in ticks
      * @returns 
      */
-    newData (data, selfTimelineEpoch) {
-        const usedSelfEpoch = selfTimelineEpoch === undefined ? this.#selfTimeLineData.length : selfTimelineEpoch
-        this.#handleNewData(data, usedSelfEpoch)
-        this.#handlePastSprite(usedSelfEpoch)
+    newData (tickData, selfTimelineEpoch) {
+        this.#handleNewData(tickData, selfTimelineEpoch)
+        this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
     }
 
-    #handleNewData (data, selfTimelineEpoch) {
-        if (this.#selfTimeLineData.length == 0) {
-            this.#selfTimeLineData[0] = new TimeSpriteTickData(data)
-            this.#setSpriteToSelfEpoch(this.#activeSprite, 0)
-            return
-        }
-
+    #handleNewData (tickData, selfTimelineEpoch) {
         const latestSelfEpoch = this.#selfTimeLineData.length
         if (selfTimelineEpoch == latestSelfEpoch) {
-            this.#appendNewTickData(data, selfTimelineEpoch)
+            this.#selfTimeLineData.push(tickData)
             this.#setSpriteToSelfEpoch(this.#activeSprite, latestSelfEpoch)
             return
         }
 
         if (selfTimelineEpoch < latestSelfEpoch) {
-            this.#updateTickData(data, selfTimelineEpoch)
+            const oldTickData = this.#selfTimeLineData[selfTimelineEpoch]
+            this.#selfTimeLineData[selfTimelineEpoch] = { ...oldTickData, ...tickData }
             return
         }
-    }
-
-    #appendNewTickData (data) {
-        const latestSelfEpoch = this.#selfTimeLineData.length
-        this.#selfTimeLineData[latestSelfEpoch] = new TimeSpriteTickData(data, latestSelfEpoch)
-    }
-
-    #updateTickData (data, selfTimelineEpoch) {
-        const oldData = this.#selfTimeLineData[selfTimelineEpoch]
-        this.#selfTimeLineData[selfTimelineEpoch] = { ...oldData, ...data }
     }
 
     // #extrapolateLastTickData (data, selfTimelineEpoch) {
@@ -138,9 +127,9 @@ export default class TimeSprite {
     }
 
     #setSpriteToSelfEpoch (sprite, selfTimelineEpoch) {
-        const data = this.#selfTimeLineData[selfTimelineEpoch]
-        sprite.position.copy(this.#getPointInSpace(data))
-        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), data.rotation)
+        const tickData = this.#selfTimeLineData[selfTimelineEpoch]
+        sprite.position.copy(this.#getPointInSpace(tickData))
+        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), tickData.rotation)
     }
 
     #handleLine (selfTimelineEpoch) {
