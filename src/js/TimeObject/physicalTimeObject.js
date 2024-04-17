@@ -30,4 +30,8 @@ export default class PhysicalTimeObject extends TimeObject {
             return translatedRotatedVertex
         })
     }
+
+    tick() {
+        // handle teleportation sprites and active sprite first
+    }
 }

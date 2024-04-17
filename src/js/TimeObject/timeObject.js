@@ -157,7 +157,7 @@ export default class TimeObject {
     }
 
     #handleLine () {
-        // TODO: optimize
+        // TODO: optimize (maybe individual lines between ticks)
         const points = this.#selfTimeLineData.map(data => this.#getPointInSpace(data))
         this.#line.geometry.setFromPoints( points )
     }
