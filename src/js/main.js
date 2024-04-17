@@ -12,8 +12,8 @@ const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
 const globalRules = {
-    getZAtEpoch: (epoch) => epoch * 1,
-    totalTicks: 3000,
+    getZAtEpoch: (epoch) => epoch * 3,
+    totalTicks: 1000,
     fieldWidth: 1500,
     fieldHeight: 1000,
 }
@@ -39,12 +39,21 @@ const controlsManager = new ControlsManager()
 // oldTimeSprite.add(scene)
 
 function data (tick) {
+    const initialProportion = 0.8
+    const initialPosition = new THREE.Vector2(globalRules.fieldWidth, globalRules.fieldHeight).multiplyScalar(-0.5 * initialProportion)
+    const velocity = 0.3
+    const speed = new THREE.Vector2(1, globalRules.fieldHeight / globalRules.fieldWidth).multiplyScalar(velocity)
+    const translation2D = speed.clone().multiplyScalar(tick)
     const radius = 200
-    const angularSpeed = Math.PI / 300
+    const angularSpeed = Math.PI / 100
+    const rotationPosition = new THREE.Vector2(radius * Math.cos(angularSpeed * tick), radius * Math.sin(angularSpeed * tick))
+    const position2D = initialPosition.clone().add(translation2D).add(rotationPosition)
+    const rotation = angularSpeed * tick + Math.PI / 2
+    const mainTimeLineEpoch = tick % globalRules.totalTicks
     return {
-        position2D: new THREE.Vector2(radius * Math.cos(angularSpeed * tick), radius * Math.sin(angularSpeed * tick)),
-        rotation: angularSpeed * tick + Math.PI / 2,
-        mainTimeLineEpoch: tick
+        position2D,
+        rotation,
+        mainTimeLineEpoch
     }
 }
 
@@ -75,7 +84,7 @@ const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, spr
 let elapsedTicks = 0
 const runTick = () => {
     timeObject.newData(data(elapsedTicks), elapsedTicks)
-    boundary.setEpoch(elapsedTicks)
+    boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
 
     const controls = controlsManager.getInputs()
     if (controls.toggleFullScreen) viewManager.toggleFullScreen()
@@ -83,7 +92,7 @@ const runTick = () => {
     controlsManager.tick()
 
     // TODO: rework render call
-    viewManager.setEpoch(elapsedTicks)
+    viewManager.setEpoch(elapsedTicks % globalRules.totalTicks)
     viewManager.render(scene)
     elapsedTicks++
 }
