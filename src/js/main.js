@@ -44,7 +44,7 @@ function data (tick) {
     const velocity = 0.3
     const speed = new THREE.Vector2(1, globalRules.fieldHeight / globalRules.fieldWidth).multiplyScalar(velocity)
     const translation2D = speed.clone().multiplyScalar(tick)
-    const radius = 200
+    const radius = 100
     const angularSpeed = Math.PI / 100
     const rotationPosition = new THREE.Vector2(radius * Math.cos(angularSpeed * tick), radius * Math.sin(angularSpeed * tick))
     const position2D = initialPosition.clone().add(translation2D).add(rotationPosition)
@@ -57,7 +57,13 @@ function data (tick) {
     }
 }
 
+
+
 const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundary)
+
+// const start = Date.now()
+// while (Date.now() < start + 1000) { console.log('waiting') }
+
 const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 /**
@@ -83,18 +89,21 @@ const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, spr
 
 let elapsedTicks = 0
 const runTick = () => {
-    timeSprite.newData(data(elapsedTicks), elapsedTicks)
-    boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
-
-    const controls = controlsManager.getInputs()
-    if (controls.toggleFullScreen) viewManager.toggleFullScreen()
-
-    controlsManager.tick()
-
-    // TODO: rework render call
-    viewManager.setEpoch(elapsedTicks % globalRules.totalTicks)
-    viewManager.render(scene)
-    elapsedTicks++
+    if (elapsedTicks < globalRules.totalTicks * 1.5) {
+        timeSprite.newData(data(elapsedTicks), elapsedTicks)
+        timeSprite.setActiveEpoch(Math.floor(elapsedTicks))
+        boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
+    
+        const controls = controlsManager.getInputs()
+        if (controls.toggleFullScreen) viewManager.toggleFullScreen()
+    
+        controlsManager.tick()
+    
+        // TODO: rework render call
+        viewManager.setEpoch(elapsedTicks % globalRules.totalTicks)
+        viewManager.render(scene)
+        elapsedTicks++
+    }
 }
 setInterval(runTick, 10)
 
