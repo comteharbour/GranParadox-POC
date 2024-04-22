@@ -175,7 +175,7 @@ export default class TimeSprite {
         this.#continuums.forEach(continuum => {
             const activeSprite = continuum.sprites.active
             if (mainTimeLineEpoch >= continuum.firstEpoch && (continuum.lastEpoch != undefined || mainTimeLineEpoch <= continuum.lastEpoch) ) {
-                this.#setSpriteToSelfEpoch(activeSprite, selfTimelineEpoch)
+                this.#setSpriteToSelfEpoch(activeSprite, mainTimeLineEpoch)
                 activeSprite.visible = true
             } else {
                 activeSprite.visible = false
