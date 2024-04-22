@@ -259,9 +259,9 @@ export default class TimeSprite {
 
     #continuumExists (selfTimelineEpoch) {
         const continuumIndex = this.#selfTimeLineData[selfTimelineEpoch].continuumIndex
-        if(continuumIndex != undefined) return false
+        if(continuumIndex == undefined) return false
         const continuum = this.#continuums[continuumIndex]
-        if(continuum != undefined) return false
+        if(continuum == undefined) return false
         return true
     }
 
