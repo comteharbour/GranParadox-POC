@@ -18,15 +18,14 @@ export default class TimeSprite {
     static #activeSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
     static #pastSpriteOpacity = 0.3
-    static #pastSpriteDelay = 123 // ticks
     static #firstContinuumSpriteColor = 0x00ffff
-    static #firstContinuumSpriteOpacity = 1
+    static #firstContinuumSpriteOpacity = 0.8
     static #lastContinuumSpriteColor = 0x00ffff
-    static #lastContinuumSpriteOpacity = 1
-    static #activeContinuumSpriteColor = 0x000000
+    static #lastContinuumSpriteOpacity = 0.8
+    static #activeContinuumSpriteColor = 0xA09090
     static #activeContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff
-    static #lineOpacity = 0.3
+    static #lineOpacity = 0.2
 
     /**
      * 
@@ -45,7 +44,6 @@ export default class TimeSprite {
         this.#maps = maps
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         this.#activeSprite = this.#createSprite(TimeSprite.#activeSpriteColor, TimeSprite.#activeSpriteOpacity)
-        this.#activeSprite.renderOrder = 1000
         const usedTickData = {
             mainTimeLineEpoch: 0,
             position2D: new THREE.Vector2(),
@@ -141,8 +139,13 @@ export default class TimeSprite {
             this.#createContinuumSprites (continuumIndex, selfTimelineEpoch)
             return
         }
+        if (this.#lineStarts (selfTimelineEpoch) && this.#continuumExists(selfTimelineEpoch)) {
+            const continuum = this.#continuums[this.#selfTimeLineData[selfTimelineEpoch].continuumIndex]
+            this.#setSpriteToSelfEpoch(continuum.sprites.first, selfTimelineEpoch)
+        }
         if (!this.#continuumExists(selfTimelineEpoch)) {
             this.#selfTimeLineData[selfTimelineEpoch].continuumIndex = this.#selfTimeLineData[selfTimelineEpoch - 1].continuumIndex
+            return
         }
     }
 
@@ -203,12 +206,14 @@ export default class TimeSprite {
     // }
 
     #handlePastSprite(selfTimelineEpoch) {
-        if (selfTimelineEpoch % TimeSprite.#pastSpriteDelay != 0) return
-        const index = selfTimelineEpoch / TimeSprite.#pastSpriteDelay
+        const pastSpriteStart = this.#globalRules.pastSpriteStart
+        const pastSpriteDelay = this.#globalRules.pastSpriteDelay
+        if (selfTimelineEpoch % pastSpriteDelay != pastSpriteStart) return
+        if (this.#lineStarts(selfTimelineEpoch)) return
+        const index = selfTimelineEpoch / pastSpriteDelay
         let sprite = this.#pastSprites[index]
         if (!sprite) {
-            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity)
-            sprite.renderOrder = 0
+            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, false)
             this.#pastSprites[index] = sprite
         }
         this.#setSpriteToSelfEpoch(sprite, selfTimelineEpoch)
@@ -221,13 +226,15 @@ export default class TimeSprite {
      * @param {boolean} addToScene default true
      * @returns {THREE.Mesh} created sprite
      */
-    #createSprite (color, opacity) {
+    #createSprite (color, opacity, applyMap = true) {
         const texture = new THREE.MeshBasicMaterial({ color, opacity, transparent: true })
         texture.side = THREE.DoubleSide
 
-        const colorTexture = this.#textureLoader.load(this.#maps.colorMap)
-        colorTexture.colorSpace = THREE.SRGBColorSpace
-        texture.map = colorTexture
+        if (applyMap) {
+            const colorTexture = this.#textureLoader.load(this.#maps.colorMap)
+            colorTexture.colorSpace = THREE.SRGBColorSpace
+            texture.map = colorTexture
+        }
 
         const alphaTexture = this.#textureLoader.load(this.#maps.alphaMap)
         alphaTexture.colorSpace = THREE.SRGBColorSpace

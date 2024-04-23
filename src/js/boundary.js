@@ -19,6 +19,7 @@ export default class Boundary {
     #createBottom (globalRules, scene, textureLoader, sprites) {
         const geometryBottom = new THREE.PlaneGeometry(globalRules.fieldWidth, globalRules.fieldHeight)
         const materialBottom = new THREE.MeshBasicMaterial({ color: 0x005000 })
+        materialBottom.wireframe = true
         const bottom = new THREE.Mesh(geometryBottom, materialBottom)
         scene.add(bottom)
     }
@@ -27,6 +28,7 @@ export default class Boundary {
         const textureVertical = textureLoader.load(sprites.vertical)
         const materialVertical = new THREE.MeshBasicMaterial()
         materialVertical.map = textureVertical
+        materialVertical.wireframe = true
 
         const geometryWidth = new THREE.PlaneGeometry(globalRules.getZAtEpoch(globalRules.totalTicks), globalRules.fieldWidth)
 

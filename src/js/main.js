@@ -12,12 +12,15 @@ const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
 const renderSpeed = 1
+const nbContinuums = 5
 
 const globalRules = {
     getZAtEpoch: (epoch) => epoch * 3 * renderSpeed,
     totalTicks: 1000 / renderSpeed,
     fieldWidth: 1500,
     fieldHeight: 1000,
+    pastSpriteStart: Math.floor(50 / renderSpeed),
+    pastSpriteDelay: Math.floor(123 / renderSpeed)
 }
 
 const cameraFOV = 20,
@@ -68,46 +71,41 @@ const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundar
 
 const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
-/**
- * Animate
- */
-// const clock = new THREE.Clock()
 
-// const tick = () =>
-// {
-//     const controls = controlsManager.getInputs()
-//     if (controls.toggleFullScreen) viewManager.toggleFullScreen()
-
-//     controlsManager.tick()
-
-//     // TODO: rework render call
-//     viewManager.render(scene)
-
-//     // Call tick again on the next frame
-//     window.requestAnimationFrame(tick)
-// }
-
-// tick()
 
 let elapsedTicks = 0
 const runTick = () => {
-    if (elapsedTicks < globalRules.totalTicks * 4.99) {
+    if (elapsedTicks < globalRules.totalTicks * nbContinuums) {
         timeSprite.newData(data(elapsedTicks), elapsedTicks)
         timeSprite.setActiveEpoch(Math.floor(elapsedTicks))
         boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
     
-        const controls = controlsManager.getInputs()
-        if (controls.toggleFullScreen) viewManager.toggleFullScreen()
-    
-        controlsManager.tick()
-    
-        // TODO: rework render call
-        viewManager.setEpoch(elapsedTicks % globalRules.totalTicks)
-        viewManager.render(scene)
         elapsedTicks++
     }
 }
 setInterval(runTick, 10)
+
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
+
+const tick = () =>
+{
+    const controls = controlsManager.getInputs()
+    if (controls.toggleFullScreen) viewManager.toggleFullScreen()
+
+    controlsManager.tick()
+
+    // TODO: rework render call
+    viewManager.setEpoch(elapsedTicks % globalRules.totalTicks)
+    viewManager.render(scene)
+
+    // Call tick again on the next frame
+    window.requestAnimationFrame(tick)
+}
+
+tick()
 
 // const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
 // new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {}, hitBox2D, 1)
