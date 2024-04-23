@@ -20,9 +20,9 @@ export default class TimeSprite {
     static #pastSpriteOpacity = 0.3
     static #pastSpriteDelay = 123 // ticks
     static #firstContinuumSpriteColor = 0x00ffff
-    static #firstContinuumSpriteOpacity = 0.3
+    static #firstContinuumSpriteOpacity = 1
     static #lastContinuumSpriteColor = 0x00ffff
-    static #lastContinuumSpriteOpacity = 0.3
+    static #lastContinuumSpriteOpacity = 1
     static #activeContinuumSpriteColor = 0x000000
     static #activeContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff
@@ -137,7 +137,7 @@ export default class TimeSprite {
         if (this.#lineStarts (selfTimelineEpoch) && !this.#continuumExists(selfTimelineEpoch)) {
             this.#closeLastContinuum (selfTimelineEpoch)
             const continuumIndex = this.#openContinuum(tickData, selfTimelineEpoch)
-            this.#createContinuumSprites (continuumIndex)
+            this.#createContinuumSprites (continuumIndex, selfTimelineEpoch)
             return
         }
         if (!this.#continuumExists(selfTimelineEpoch)) {
@@ -149,7 +149,7 @@ export default class TimeSprite {
         if (selfTimelineEpoch > 0) {
             const last = this.#selfTimeLineData[selfTimelineEpoch - 1]
             const continuum = this.#continuums[last.continuumIndex]
-            continuum.lastEpoch = last.mainTimeLineEpoch
+            continuum.lastMainTimeLineEpoch = last.mainTimeLineEpoch
             continuum.sprites.last.visible = true
         }
     }
@@ -158,12 +158,14 @@ export default class TimeSprite {
         const continuumIndex = this.#continuums.length
         this.#selfTimeLineData[selfTimelineEpoch].continuumIndex = continuumIndex
         this.#continuums[continuumIndex] = {}
-        this.#continuums[continuumIndex].firstEpoch = tickData.mainTimeLineEpoch
+        this.#continuums[continuumIndex].firstMainTimeLineEpoch = tickData.mainTimeLineEpoch
+        this.#continuums[continuumIndex].getSelfTimeLineEpoch = mainTimeLineEpoch => selfTimelineEpoch + mainTimeLineEpoch - tickData.mainTimeLineEpoch // firstSelfTimelineEpoch + (mainTimeLineEpoch - firstMainTimeLineEpoch)
         return continuumIndex
     }
 
-    #createContinuumSprites (continuumIndex) {
+    #createContinuumSprites (continuumIndex, selfTimelineEpoch) {
         const first = this.#createSprite(TimeSprite.#firstContinuumSpriteColor, TimeSprite.#firstContinuumSpriteOpacity)
+        this.#setSpriteToSelfEpoch(first, selfTimelineEpoch)
         const last = this.#createSprite(TimeSprite.#lastContinuumSpriteColor, TimeSprite.#lastContinuumSpriteOpacity)
         last.visible = false
         const active = this.#createSprite(TimeSprite.#activeContinuumSpriteColor, TimeSprite.#activeContinuumSpriteOpacity)
@@ -174,10 +176,13 @@ export default class TimeSprite {
         const mainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch].mainTimeLineEpoch
         this.#continuums.forEach(continuum => {
             const activeSprite = continuum.sprites.active
-            if (mainTimeLineEpoch >= continuum.firstEpoch && (continuum.lastEpoch != undefined || mainTimeLineEpoch <= continuum.lastEpoch) ) {
-                this.#setSpriteToSelfEpoch(activeSprite, mainTimeLineEpoch)
+            if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
+                const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
+                console.log(continuumSelfTimeLineEpoch)
+                this.#setSpriteToSelfEpoch(activeSprite, continuumSelfTimeLineEpoch)
                 activeSprite.visible = true
             } else {
+                console.log(continuum.firstMainTimeLineEpoch, mainTimeLineEpoch, continuum.lastMainTimeLineEpoch)
                 activeSprite.visible = false
             }
         })
