@@ -124,6 +124,7 @@ export default class TimeSprite {
         this.#mainTimeLineMapping[mainTimeLineEpoch].push(selfTimelineEpoch)
     }
 
+    // Next version: mapping selfTimeLine intervals > continuums
     #handleContinuums (tickData, selfTimelineEpoch) {
         this.#handleContinuumPropagation(tickData, selfTimelineEpoch)
         this.#handleActiveContinuumSprites(selfTimelineEpoch)
@@ -150,6 +151,7 @@ export default class TimeSprite {
             const last = this.#selfTimeLineData[selfTimelineEpoch - 1]
             const continuum = this.#continuums[last.continuumIndex]
             continuum.lastMainTimeLineEpoch = last.mainTimeLineEpoch
+            this.#setSpriteToSelfEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(last.mainTimeLineEpoch))
             continuum.sprites.last.visible = true
         }
     }
@@ -178,11 +180,9 @@ export default class TimeSprite {
             const activeSprite = continuum.sprites.active
             if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
                 const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
-                console.log(continuumSelfTimeLineEpoch)
                 this.#setSpriteToSelfEpoch(activeSprite, continuumSelfTimeLineEpoch)
                 activeSprite.visible = true
             } else {
-                console.log(continuum.firstMainTimeLineEpoch, mainTimeLineEpoch, continuum.lastMainTimeLineEpoch)
                 activeSprite.visible = false
             }
         })

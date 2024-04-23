@@ -11,7 +11,7 @@ const scene = new THREE.Scene()
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
-const renderSpeed = 10
+const renderSpeed = 1
 
 const globalRules = {
     getZAtEpoch: (epoch) => epoch * 3 * renderSpeed,
