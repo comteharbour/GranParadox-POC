@@ -6,7 +6,7 @@ export default class TimeSprite {
     #globalRules
     #maps
     #rectangle
-    #selfTimeLineData = []
+    #selfTimeLineSpaceTimePosition = []
     #mainTimeLineMapping = []
     #activeSprite
     #activeSelfTimeLineEpoch = null
@@ -32,12 +32,12 @@ export default class TimeSprite {
      * @param {Scene} scene 
      * @param {TextureLoader} textureLoader 
      * @param {{colorMap: image, alphaMap: image}} maps
-     * @param {{zPerTick}} globalRules
+     * @param {{pastSpriteDelay: number, pastSpriteStart: number, getZAtEpoch: function}} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} tickData
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} initialSpaceTimePosition
      */
-    constructor (scene, textureLoader, globalRules, width, height, maps, tickData) {
+    constructor (scene, textureLoader, globalRules, width, height, maps, initialSpaceTimePosition) {
         this.#scene = scene
         this.#textureLoader = textureLoader
         this.#globalRules = globalRules
@@ -48,9 +48,9 @@ export default class TimeSprite {
             mainTimeLineEpoch: 0,
             position2D: new THREE.Vector2(),
             rotation: 0,
-            ...tickData
+            ...initialSpaceTimePosition
         }
-        this.newData(usedTickData, 0)
+        this.newSpaceTimePosition(usedTickData, 0)
     }
 
     /**
@@ -63,17 +63,21 @@ export default class TimeSprite {
 
     /**
      * 
-     * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} data
+     * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} spaceTimePosition
      * @param {number} selfTimelineEpoch - measured in ticks
      */
-    newData (tickData, selfTimelineEpoch) {
-        this.#handleNewData(tickData, selfTimelineEpoch)
-        this.#handleContinuums(tickData, selfTimelineEpoch)
+    newSpaceTimePosition (spaceTimePosition, selfTimelineEpoch) {
+        this.#handleNewData(spaceTimePosition, selfTimelineEpoch)
+        this.#handleContinuums(spaceTimePosition, selfTimelineEpoch)
         this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
 
     }
 
+    /**
+     * 
+     * @param {number} selfTimelineEpoch
+     */
     setActiveEpoch (selfTimelineEpoch) {
         if (selfTimelineEpoch == null && this.#activeSelfTimeLineEpoch != null) {
             this.#scene.remove(this.#activeSprite)
@@ -93,29 +97,29 @@ export default class TimeSprite {
      * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} data
      * @param {number} selfTimelineEpoch - measured in ticks
      */
-    #handleNewData (tickData, selfTimelineEpoch) {
-        const latestSelfEpoch = this.#selfTimeLineData.length
+    #handleNewData (spaceTimePosition, selfTimelineEpoch) {
+        const latestSelfEpoch = this.#selfTimeLineSpaceTimePosition.length
         if (selfTimelineEpoch == latestSelfEpoch) {
-            this.#selfTimeLineData.push(tickData)
+            this.#selfTimeLineSpaceTimePosition.push(spaceTimePosition)
         }
 
         if (selfTimelineEpoch < latestSelfEpoch) {
             this.#unmapToMainTimeLine(selfTimelineEpoch)
-            const oldTickData = this.#selfTimeLineData[selfTimelineEpoch]
-            this.#selfTimeLineData[selfTimelineEpoch] = { ...oldTickData, ...tickData }
+            const oldTickData = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
+            this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch] = { ...oldTickData, ...spaceTimePosition }
         }
 
-        this.#mapToMainTimeLine(tickData, selfTimelineEpoch)
+        this.#mapToMainTimeLine(spaceTimePosition, selfTimelineEpoch)
     }
 
     #unmapToMainTimeLine (selfTimelineEpoch) {
-        const mainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch].mainTimeLineEpoch
+        const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
         const newMapping = this.#mainTimeLineMapping[mainTimeLineEpoch].filter(selfEpoch => selfEpoch != selfTimelineEpoch)
         this.#mainTimeLineMapping = newMapping
     }
 
-    #mapToMainTimeLine (tickData, selfTimelineEpoch) {
-        const mainTimeLineEpoch = tickData.mainTimeLineEpoch
+    #mapToMainTimeLine (spaceTimePosition, selfTimelineEpoch) {
+        const mainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
         if (this.#mainTimeLineMapping[mainTimeLineEpoch] == undefined) {
             this.#mainTimeLineMapping[mainTimeLineEpoch] = []
         }
@@ -123,35 +127,35 @@ export default class TimeSprite {
     }
 
     // Next version: mapping selfTimeLine intervals > continuums
-    #handleContinuums (tickData, selfTimelineEpoch) {
-        this.#handleContinuumPropagation(tickData, selfTimelineEpoch)
+    #handleContinuums (spaceTimePosition, selfTimelineEpoch) {
+        this.#handleContinuumPropagation(spaceTimePosition, selfTimelineEpoch)
         this.#handleActiveContinuumSprites(selfTimelineEpoch)
     }
 
-    #handleContinuumPropagation (tickData, selfTimelineEpoch) {
+    #handleContinuumPropagation (spaceTimePosition, selfTimelineEpoch) {
         /**
          * In this version: always create new continuum.
          * In next version: continuums may merge under some condition (position, rotation, speed and rotationSpeed close to next position, rotation, speed and rotationSpeed)
          */
         if (this.#lineStarts (selfTimelineEpoch) && !this.#continuumExists(selfTimelineEpoch)) {
             this.#closeLastContinuum (selfTimelineEpoch)
-            const continuumIndex = this.#openContinuum(tickData, selfTimelineEpoch)
+            const continuumIndex = this.#openContinuum(spaceTimePosition, selfTimelineEpoch)
             this.#createContinuumSprites (continuumIndex, selfTimelineEpoch)
             return
         }
         if (this.#lineStarts (selfTimelineEpoch) && this.#continuumExists(selfTimelineEpoch)) {
-            const continuum = this.#continuums[this.#selfTimeLineData[selfTimelineEpoch].continuumIndex]
+            const continuum = this.#continuums[this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex]
             this.#setSpriteToSelfEpoch(continuum.sprites.first, selfTimelineEpoch)
         }
         if (!this.#continuumExists(selfTimelineEpoch)) {
-            this.#selfTimeLineData[selfTimelineEpoch].continuumIndex = this.#selfTimeLineData[selfTimelineEpoch - 1].continuumIndex
+            this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1].continuumIndex
             return
         }
     }
 
     #closeLastContinuum (selfTimelineEpoch) {
         if (selfTimelineEpoch > 0) {
-            const last = this.#selfTimeLineData[selfTimelineEpoch - 1]
+            const last = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1]
             const continuum = this.#continuums[last.continuumIndex]
             continuum.lastMainTimeLineEpoch = last.mainTimeLineEpoch
             this.#setSpriteToSelfEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(last.mainTimeLineEpoch))
@@ -159,12 +163,12 @@ export default class TimeSprite {
         }
     }
 
-    #openContinuum (tickData, selfTimelineEpoch) {
+    #openContinuum (spaceTimePosition, selfTimelineEpoch) {
         const continuumIndex = this.#continuums.length
-        this.#selfTimeLineData[selfTimelineEpoch].continuumIndex = continuumIndex
+        this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex = continuumIndex
         this.#continuums[continuumIndex] = {}
-        this.#continuums[continuumIndex].firstMainTimeLineEpoch = tickData.mainTimeLineEpoch
-        this.#continuums[continuumIndex].getSelfTimeLineEpoch = mainTimeLineEpoch => selfTimelineEpoch + mainTimeLineEpoch - tickData.mainTimeLineEpoch // firstSelfTimelineEpoch + (mainTimeLineEpoch - firstMainTimeLineEpoch)
+        this.#continuums[continuumIndex].firstMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
+        this.#continuums[continuumIndex].getSelfTimeLineEpoch = mainTimeLineEpoch => selfTimelineEpoch + mainTimeLineEpoch - spaceTimePosition.mainTimeLineEpoch // firstSelfTimelineEpoch + (mainTimeLineEpoch - firstMainTimeLineEpoch)
         return continuumIndex
     }
 
@@ -178,7 +182,7 @@ export default class TimeSprite {
     }
 
     #handleActiveContinuumSprites (selfTimelineEpoch) {
-        const mainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch].mainTimeLineEpoch
+        const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
         this.#continuums.forEach(continuum => {
             const activeSprite = continuum.sprites.active
             if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
@@ -192,7 +196,7 @@ export default class TimeSprite {
     }
 
     // #extrapolateLastTickData (data, selfTimelineEpoch) {
-    //     const lastData = this.#selfTimeLineData[selfTimelineEpoch - 1]
+    //     const lastData = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1]
     //     const mainTimeLineEpoch = !!data.mainTimeLineEpoch ? data.mainTimeLineEpoch : lastData.mainTimeLineEpoch + 1
     //     const position2D = !!data.position2D ? data.position2D : lastData.position2D + lastData.speed2D
     //     const speed2D = !!data.speed2D ? data.speed2D : lastData.speed2D
@@ -201,8 +205,8 @@ export default class TimeSprite {
     //     const HP = !!data.HP ? data.HP : lastData.HP
     //     const justTeleported = !!data.justTeleported
 
-    //     const newData = { mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported}
-    //     this.#selfTimeLineData[selfTimelineEpoch] = new TimeSpriteTickData(newMainTimeLineEpoch, newData)
+    //     const newSpaceTimePosition = { mainTimeLineEpoch, position2D, speed2D, rotation, rotationSpeed, HP, justTeleported}
+    //     this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch] = new TimeSpriteTickData(newMainTimeLineEpoch, newSpaceTimePosition)
     // }
 
     #handlePastSprite(selfTimelineEpoch) {
@@ -247,16 +251,16 @@ export default class TimeSprite {
     }
 
     #setSpriteToSelfEpoch (sprite, selfTimelineEpoch) {
-        const tickData = this.#selfTimeLineData[selfTimelineEpoch]
-        sprite.position.copy(this.#getPointInSpace(tickData))
-        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), tickData.rotation)
+        const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
+        sprite.position.copy(this.#getPointInSpace(spaceTimePosition))
+        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), spaceTimePosition.rotation)
     }
 
     #handleLine (selfTimelineEpoch) {
         if (!this.#lineStarts(selfTimelineEpoch)) {
-            const lastData = this.#selfTimeLineData[selfTimelineEpoch - 1]
+            const lastData = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1]
             const lastPoint = this.#getPointInSpace(lastData)
-            const data = this.#selfTimeLineData[selfTimelineEpoch]
+            const data = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
             const point = this.#getPointInSpace(data)
             this.#createSegment(lastPoint, point, selfTimelineEpoch)
         }
@@ -270,7 +274,7 @@ export default class TimeSprite {
     }
 
     #continuumExists (selfTimelineEpoch) {
-        const continuumIndex = this.#selfTimeLineData[selfTimelineEpoch].continuumIndex
+        const continuumIndex = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex
         if(continuumIndex == undefined) return false
         const continuum = this.#continuums[continuumIndex]
         if(continuum == undefined) return false
@@ -281,8 +285,8 @@ export default class TimeSprite {
         if (selfTimelineEpoch == 0) {
             return true
         }
-        const mainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch].mainTimeLineEpoch
-        const lastMainTimeLineEpoch = this.#selfTimeLineData[selfTimelineEpoch - 1].mainTimeLineEpoch
+        const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
+        const lastMainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1].mainTimeLineEpoch
         const lineStarts = mainTimeLineEpoch != lastMainTimeLineEpoch + 1
         return lineStarts
     }
@@ -295,11 +299,11 @@ export default class TimeSprite {
         )
     }
     
-    #getPointInSpace(tickData) {
-        return this._vector3From (tickData.position2D, tickData.mainTimeLineEpoch)
+    #getPointInSpace(spaceTimePosition) {
+        return this._vector3From (spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
     }
 
-    get selfTimeLineData() {
-        return this.#selfTimeLineData
+    get selfTimeLineSpaceTimePosition() {
+        return this.#selfTimeLineSpaceTimePosition
     }
 }

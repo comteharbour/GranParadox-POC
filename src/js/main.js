@@ -76,7 +76,7 @@ const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, spr
 let elapsedTicks = 0
 const runTick = () => {
     if (elapsedTicks < globalRules.totalTicks * nbContinuums) {
-        timeSprite.newData(data(elapsedTicks), elapsedTicks)
+        timeSprite.newSpaceTimePosition(data(elapsedTicks), elapsedTicks)
         timeSprite.setActiveEpoch(Math.floor(elapsedTicks))
         boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
     
