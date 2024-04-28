@@ -78,7 +78,7 @@ export default class TimeSprite {
      * 
      * @param {number} selfTimelineEpoch
      */
-    setActiveSelfTimeLineEpoch (selfTimelineEpoch) {
+    setPropagationSelfTimeLineEpoch (selfTimelineEpoch) {
         if (selfTimelineEpoch == null && this.#propagationSelfTimeLineEpoch != null) {
             this.#propagationSprite.visible = false
             return

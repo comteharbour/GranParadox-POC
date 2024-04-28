@@ -71,7 +71,7 @@ let elapsedTicks = 0
 const runTick = () => {
     if (elapsedTicks < globalRules.totalTicks * nbContinuums) {
         timeSprite.newSpaceTimePosition(data(elapsedTicks), elapsedTicks)
-        timeSprite.setActiveSelfTimeLineEpoch(Math.floor(elapsedTicks))
+        timeSprite.setPropagationSelfTimeLineEpoch(Math.floor(elapsedTicks))
         boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
     
         elapsedTicks++
