@@ -58,7 +58,7 @@ export default class TimeSprite {
      * @param {number} selfTimelineEpoch integer >= 0 or -1 for latest epoch
      */
     // setActiveAt (selfTimelineEpoch) {
-    //     if (selfTimelineEpoch == -1) this.#setSpriteToSelfEpoch(this.#activeSprite, sel)
+    //     if (selfTimelineEpoch == -1) this.#setSpriteToSelfTimeLineEpoch(this.#activeSprite, sel)
     // }
 
     /**
@@ -78,17 +78,17 @@ export default class TimeSprite {
      * 
      * @param {number} selfTimelineEpoch
      */
-    setActiveEpoch (selfTimelineEpoch) {
+    setActiveSelfTimeLineEpoch (selfTimelineEpoch) {
         if (selfTimelineEpoch == null && this.#activeSelfTimeLineEpoch != null) {
-            this.#scene.remove(this.#activeSprite)
+            this.#activeSprite.visible = false
             return
         }
 
         if (selfTimelineEpoch != null && this.#activeSelfTimeLineEpoch == null) {
-            this.#scene.add(this.#activeSprite)
+            this.#activeSprite.visible = true
         }
 
-        this.#setSpriteToSelfEpoch(this.#activeSprite, selfTimelineEpoch)
+        this.#setSpriteToSelfTimeLineEpoch(this.#activeSprite, selfTimelineEpoch)
         this.#activeSelfTimeLineEpoch = selfTimelineEpoch
     }
 
@@ -98,12 +98,12 @@ export default class TimeSprite {
      * @param {number} selfTimelineEpoch - measured in ticks
      */
     #handleNewData (spaceTimePosition, selfTimelineEpoch) {
-        const latestSelfEpoch = this.#selfTimeLineSpaceTimePosition.length
-        if (selfTimelineEpoch == latestSelfEpoch) {
+        const latestSelfTimeLineEpoch = this.#selfTimeLineSpaceTimePosition.length
+        if (selfTimelineEpoch == latestSelfTimeLineEpoch) {
             this.#selfTimeLineSpaceTimePosition.push(spaceTimePosition)
         }
 
-        if (selfTimelineEpoch < latestSelfEpoch) {
+        if (selfTimelineEpoch < latestSelfTimeLineEpoch) {
             this.#unmapToMainTimeLine(selfTimelineEpoch)
             const oldTickData = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
             this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch] = { ...oldTickData, ...spaceTimePosition }
@@ -145,7 +145,7 @@ export default class TimeSprite {
         }
         if (this.#lineStarts (selfTimelineEpoch) && this.#continuumExists(selfTimelineEpoch)) {
             const continuum = this.#continuums[this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex]
-            this.#setSpriteToSelfEpoch(continuum.sprites.first, selfTimelineEpoch)
+            this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.first, selfTimelineEpoch)
         }
         if (!this.#continuumExists(selfTimelineEpoch)) {
             this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1].continuumIndex
@@ -158,7 +158,7 @@ export default class TimeSprite {
             const last = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1]
             const continuum = this.#continuums[last.continuumIndex]
             continuum.lastMainTimeLineEpoch = last.mainTimeLineEpoch
-            this.#setSpriteToSelfEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(last.mainTimeLineEpoch))
+            this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(last.mainTimeLineEpoch))
             continuum.sprites.last.visible = true
         }
     }
@@ -174,7 +174,7 @@ export default class TimeSprite {
 
     #createContinuumSprites (continuumIndex, selfTimelineEpoch) {
         const first = this.#createSprite(TimeSprite.#firstContinuumSpriteColor, TimeSprite.#firstContinuumSpriteOpacity)
-        this.#setSpriteToSelfEpoch(first, selfTimelineEpoch)
+        this.#setSpriteToSelfTimeLineEpoch(first, selfTimelineEpoch)
         const last = this.#createSprite(TimeSprite.#lastContinuumSpriteColor, TimeSprite.#lastContinuumSpriteOpacity)
         last.visible = false
         const active = this.#createSprite(TimeSprite.#activeContinuumSpriteColor, TimeSprite.#activeContinuumSpriteOpacity)
@@ -187,7 +187,7 @@ export default class TimeSprite {
             const activeSprite = continuum.sprites.active
             if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
                 const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
-                this.#setSpriteToSelfEpoch(activeSprite, continuumSelfTimeLineEpoch)
+                this.#setSpriteToSelfTimeLineEpoch(activeSprite, continuumSelfTimeLineEpoch)
                 activeSprite.visible = true
             } else {
                 activeSprite.visible = false
@@ -220,7 +220,7 @@ export default class TimeSprite {
             sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, false)
             this.#pastSprites[index] = sprite
         }
-        this.#setSpriteToSelfEpoch(sprite, selfTimelineEpoch)
+        this.#setSpriteToSelfTimeLineEpoch(sprite, selfTimelineEpoch)
     }
 
     /**
@@ -250,7 +250,7 @@ export default class TimeSprite {
         return sprite
     }
 
-    #setSpriteToSelfEpoch (sprite, selfTimelineEpoch) {
+    #setSpriteToSelfTimeLineEpoch (sprite, selfTimelineEpoch) {
         const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
         sprite.position.copy(this.#getPointInSpace(spaceTimePosition))
         sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), spaceTimePosition.rotation)

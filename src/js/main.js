@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import OldTimeSprite from './timeSprite_old.js'
 import { ViewManager } from './viewManager.js'
 import { ControlsManager } from './controlsManager.js'
+import GlobalRules from './globalRules.js'
 import TimeSprite from './TimeObject/timeSprite.js'
 import TimeObject from './TimeObject/timeObject.js'
 import Boundary from './boundary.js'
@@ -14,14 +15,7 @@ const textureLoader = new THREE.TextureLoader(loadingManager)
 const renderSpeed = 1
 const nbContinuums = 5
 
-const globalRules = {
-    getZAtEpoch: (epoch) => epoch * 3 * renderSpeed,
-    totalTicks: 1000 / renderSpeed,
-    fieldWidth: 1500,
-    fieldHeight: 1000,
-    pastSpriteStart: Math.floor(50 / renderSpeed),
-    pastSpriteDelay: Math.floor(123 / renderSpeed)
-}
+const globalRules = new GlobalRules (1000 / renderSpeed, 1500, 1000, Math.floor(50 / renderSpeed), Math.floor(123 / renderSpeed), 3)
 
 const cameraFOV = 20,
 cameraMargin = 10
@@ -77,7 +71,7 @@ let elapsedTicks = 0
 const runTick = () => {
     if (elapsedTicks < globalRules.totalTicks * nbContinuums) {
         timeSprite.newSpaceTimePosition(data(elapsedTicks), elapsedTicks)
-        timeSprite.setActiveEpoch(Math.floor(elapsedTicks))
+        timeSprite.setActiveSelfTimeLineEpoch(Math.floor(elapsedTicks))
         boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
     
         elapsedTicks++
@@ -107,5 +101,5 @@ const tick = () =>
 
 tick()
 
-// const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
-// new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {}, hitBox2D, 1)
+const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
+new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {position2D: new THREE.Vector2(100,100)}, {speed2D: new THREE.Vector2(5, 5), rotationSpeed: 5}, hitBox2D, 1)
