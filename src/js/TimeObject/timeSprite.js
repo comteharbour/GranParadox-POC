@@ -8,22 +8,22 @@ export default class TimeSprite {
     #rectangle
     #selfTimeLineSpaceTimePosition = []
     #mainTimeLineMapping = []
-    #activeSprite
-    #activeSelfTimeLineEpoch = null
+    #propagationSprite
+    #propagationSelfTimeLineEpoch = null
     #continuums = []
     #pastSprites = []
     #segments = []
 
-    static #activeSpriteColor = 0xffffff
-    static #activeSpriteOpacity = 1
+    static #propagationSpriteColor = 0xffffff
+    static #propagationSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
     static #pastSpriteOpacity = 0.3
     static #firstContinuumSpriteColor = 0x00ffff
     static #firstContinuumSpriteOpacity = 0.8
     static #lastContinuumSpriteColor = 0x00ffff
     static #lastContinuumSpriteOpacity = 0.8
-    static #activeContinuumSpriteColor = 0xA09090
-    static #activeContinuumSpriteOpacity = 1
+    static #playerEpochContinuumSpriteColor = 0xA09090
+    static #playerEpochContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff
     static #lineOpacity = 0.2
 
@@ -43,7 +43,7 @@ export default class TimeSprite {
         this.#globalRules = globalRules
         this.#maps = maps
         this.#rectangle = new THREE.PlaneGeometry(height, width)
-        this.#activeSprite = this.#createSprite(TimeSprite.#activeSpriteColor, TimeSprite.#activeSpriteOpacity)
+        this.#propagationSprite = this.#createSprite(TimeSprite.#propagationSpriteColor, TimeSprite.#propagationSpriteOpacity)
         const usedTickData = {
             mainTimeLineEpoch: 0,
             position2D: new THREE.Vector2(),
@@ -58,7 +58,7 @@ export default class TimeSprite {
      * @param {number} selfTimelineEpoch integer >= 0 or -1 for latest epoch
      */
     // setActiveAt (selfTimelineEpoch) {
-    //     if (selfTimelineEpoch == -1) this.#setSpriteToSelfTimeLineEpoch(this.#activeSprite, sel)
+    //     if (selfTimelineEpoch == -1) this.#setSpriteToSelfTimeLineEpoch(this.#propagationSprite, sel)
     // }
 
     /**
@@ -79,17 +79,17 @@ export default class TimeSprite {
      * @param {number} selfTimelineEpoch
      */
     setActiveSelfTimeLineEpoch (selfTimelineEpoch) {
-        if (selfTimelineEpoch == null && this.#activeSelfTimeLineEpoch != null) {
-            this.#activeSprite.visible = false
+        if (selfTimelineEpoch == null && this.#propagationSelfTimeLineEpoch != null) {
+            this.#propagationSprite.visible = false
             return
         }
 
-        if (selfTimelineEpoch != null && this.#activeSelfTimeLineEpoch == null) {
-            this.#activeSprite.visible = true
+        if (selfTimelineEpoch != null && this.#propagationSelfTimeLineEpoch == null) {
+            this.#propagationSprite.visible = true
         }
 
-        this.#setSpriteToSelfTimeLineEpoch(this.#activeSprite, selfTimelineEpoch)
-        this.#activeSelfTimeLineEpoch = selfTimelineEpoch
+        this.#setSpriteToSelfTimeLineEpoch(this.#propagationSprite, selfTimelineEpoch)
+        this.#propagationSelfTimeLineEpoch = selfTimelineEpoch
     }
 
     /**
@@ -177,20 +177,20 @@ export default class TimeSprite {
         this.#setSpriteToSelfTimeLineEpoch(first, selfTimelineEpoch)
         const last = this.#createSprite(TimeSprite.#lastContinuumSpriteColor, TimeSprite.#lastContinuumSpriteOpacity)
         last.visible = false
-        const active = this.#createSprite(TimeSprite.#activeContinuumSpriteColor, TimeSprite.#activeContinuumSpriteOpacity)
-        this.#continuums[continuumIndex].sprites = { first, last, active }
+        const playerEpoch = this.#createSprite(TimeSprite.#playerEpochContinuumSpriteColor, TimeSprite.#playerEpochContinuumSpriteOpacity)
+        this.#continuums[continuumIndex].sprites = { first, last, playerEpoch }
     }
 
     #handleActiveContinuumSprites (selfTimelineEpoch) {
         const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
         this.#continuums.forEach(continuum => {
-            const activeSprite = continuum.sprites.active
+            const propagationSprite = continuum.sprites.playerEpoch
             if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
                 const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
-                this.#setSpriteToSelfTimeLineEpoch(activeSprite, continuumSelfTimeLineEpoch)
-                activeSprite.visible = true
+                this.#setSpriteToSelfTimeLineEpoch(propagationSprite, continuumSelfTimeLineEpoch)
+                propagationSprite.visible = true
             } else {
-                activeSprite.visible = false
+                propagationSprite.visible = false
             }
         })
     }
