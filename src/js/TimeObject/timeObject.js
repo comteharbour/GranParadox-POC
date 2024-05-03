@@ -33,9 +33,8 @@ export default class TimeObject extends TimeSprite {
     tick() {
         this.#setTemporarySpaceTimePositionAndPropagation()
 
-        // this.accelerate( new THREE.Vector2(0.01, 0.01), Math.PI / 1000 )
-        this.#changeSpeed()
-        this.#changePosition()
+        this.#changeSpaceSpeed()
+        this.#changeSpaceTimePosition()
 
         this.#createHitBox()
 
@@ -68,19 +67,22 @@ export default class TimeObject extends TimeSprite {
      * @param {THREE.Vector2} translationTrust 
      * @param {number} rotationThrust 
      */
-    accelerate(translationThrust, rotationThrust) {
+    thrust(translationThrust, rotationThrust) {
         this.#translationThrust = translationThrust
         this.#rotationThrust = rotationThrust
     }
 
-    #changeSpeed () {
+    #changeSpaceSpeed () {
         this.#temporarySpaceTimeMovement.spaceSpeed.speed2D.add(this.#translationThrust)
         this.#temporarySpaceTimeMovement.spaceSpeed.rotationSpeed += this.#rotationThrust
     }
 
-    #changePosition () {
+    #changeSpaceTimePosition () {
         this.#temporarySpaceTimeMovement.spaceTimePosition.position2D.add(this.#temporarySpaceTimeMovement.spaceSpeed.speed2D)
         this.#temporarySpaceTimeMovement.spaceTimePosition.rotation += this.#temporarySpaceTimeMovement.spaceSpeed.rotationSpeed
+
+        const mainTimeLineEpoch = (this.#temporarySpaceTimeMovement.spaceTimePosition.mainTimeLineEpoch + 1) % super.globalRules.totalTicks
+        this.#temporarySpaceTimeMovement.spaceTimePosition.mainTimeLineEpoch = mainTimeLineEpoch
     }
 
     #handleBorder () {
