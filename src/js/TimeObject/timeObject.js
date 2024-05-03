@@ -62,7 +62,7 @@ export default class TimeObject extends TimeSprite {
          * 
          * La supression en chaîne peut être plus simple à lire et à coder
          */
-        
+
         super._destroyAt(selfTimelineEpoch)
         // supprimer les données suivantes
         this.#children.forEach(child => {
@@ -94,8 +94,9 @@ export default class TimeObject extends TimeSprite {
         const propagationSelfTimeLineEpoch = lastPropagationSelfTimeLineEpoch + 1
         this.#temporarySpaceTimeMovement = {
             spaceTimePosition: {
-                ...lastSpaceTimePosition,
+                mainTimeLineEpoch: lastSpaceTimePosition.mainTimeLineEpoch,
                 position2D: lastSpaceTimePosition.position2D.clone(),
+                rotation: lastSpaceTimePosition.rotation
             },
             spaceSpeed: {
                 ...spaceSpeed,
