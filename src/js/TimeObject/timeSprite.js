@@ -6,10 +6,29 @@ export default class TimeSprite {
     #globalRules
     #maps
     #rectangle
+
     #selfTimeLineSpaceTimePosition = []
+    get selfTimeLineSpaceTimePosition () { return this.#selfTimeLineSpaceTimePosition }
+
     #mainTimeLineMapping = []
     #propagationSprite
-    #propagationSelfTimeLineEpoch = null
+
+    #propagationSelfTimeLineEpoch = 0
+    get propagationSelfTimeLineEpoch () { return this.#propagationSelfTimeLineEpoch }
+    set propagationSelfTimeLineEpoch (selfTimelineEpoch) {
+        if (selfTimelineEpoch == null && this.#propagationSelfTimeLineEpoch != null) {
+            this.#propagationSprite.visible = false
+            return
+        }
+
+        if (selfTimelineEpoch != null && this.#propagationSelfTimeLineEpoch == null) {
+            this.#propagationSprite.visible = true
+        }
+
+        this.#setSpriteToSelfTimeLineEpoch(this.#propagationSprite, selfTimelineEpoch)
+        this.#propagationSelfTimeLineEpoch = selfTimelineEpoch
+    }
+
     #continuums = []
     #pastSprites = []
     #segments = []
@@ -71,25 +90,6 @@ export default class TimeSprite {
         this.#handleContinuums(spaceTimePosition, selfTimelineEpoch)
         this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
-
-    }
-
-    /**
-     * 
-     * @param {number} selfTimelineEpoch
-     */
-    setPropagationSelfTimeLineEpoch (selfTimelineEpoch) {
-        if (selfTimelineEpoch == null && this.#propagationSelfTimeLineEpoch != null) {
-            this.#propagationSprite.visible = false
-            return
-        }
-
-        if (selfTimelineEpoch != null && this.#propagationSelfTimeLineEpoch == null) {
-            this.#propagationSprite.visible = true
-        }
-
-        this.#setSpriteToSelfTimeLineEpoch(this.#propagationSprite, selfTimelineEpoch)
-        this.#propagationSelfTimeLineEpoch = selfTimelineEpoch
     }
 
     /**
@@ -301,9 +301,5 @@ export default class TimeSprite {
     
     #getPointInSpace(spaceTimePosition) {
         return this._vector3From (spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
-    }
-
-    get selfTimeLineSpaceTimePosition() {
-        return this.#selfTimeLineSpaceTimePosition
     }
 }
