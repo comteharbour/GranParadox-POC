@@ -15,7 +15,22 @@ const textureLoader = new THREE.TextureLoader(loadingManager)
 const renderSpeed = 1
 const nbContinuums = 2
 
-const globalRules = new GlobalRules (1000 / renderSpeed, 1500, 1000, Math.floor(50 / renderSpeed), Math.floor(123 / renderSpeed), 1)
+const totalTicks = 1000 / renderSpeed
+const fieldWidth = 1500
+const fieldHeight = 1000
+const pastSpriteStart = Math.floor(0 / renderSpeed)
+const pastSpriteDelay = Math.floor(23 / renderSpeed)
+const pastSpriteFactor = 0.5
+const zPerTick = 1
+const globalRules = new GlobalRules ({
+    totalTicks,
+    fieldWidth,
+    fieldHeight,
+    pastSpriteStart,
+    pastSpriteDelay,
+    pastSpriteFactor,
+    zPerTick
+})
 
 const cameraFOV = 50,
 cameraMargin = 10

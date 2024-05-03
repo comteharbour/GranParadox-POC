@@ -9,6 +9,7 @@ export default class TimeObject extends TimeSprite {
     #temporarySpaceTimeMovement
     #temporaryTranslationThrust = new THREE.Vector2()
     #temporaryRotationThrust = 0
+    #children = []
 
     /**
      * 
@@ -28,6 +29,48 @@ export default class TimeObject extends TimeSprite {
         this.#hitBox2D = hitBox2D.map(vertex => vertex.clone())
         this.#setTemporarySpaceTimePositionAndPropagation()
         this.#createHitBox()
+    }
+
+    /**
+     * 
+     * @param {THREE.Vector2} translationTrust 
+     * @param {number} rotationThrust 
+     */
+    thrust(translationThrust, rotationThrust) {
+        this.#temporaryTranslationThrust = translationThrust
+        this.#temporaryRotationThrust = rotationThrust
+    }
+
+    /**
+     * 
+     * @param {TimeObject} child 
+     * @param {number} selfTimelineEpoch 
+     */
+    _create (timeObject, selfTimelineEpoch) {
+        this.#children.push({ timeObject, selfTimelineEpoch })
+    }
+
+    destroyAt (selfTimelineEpoch) {
+        /**
+         * Première réflexion:
+         * Si l'objet a déjà créé d'autres objets, il faut supprimer la suite de cet objet.
+         * Mais s'il n'en a pas encore créé, on peut tout effacer.
+         * 
+         * Amélioration:
+         * Si on détruit un objet après sa création, il faut supprimer le futur et conserver le passé
+         * Mais si on le détruit avant ou pendant sa création, on peut tout supprimer
+         * 
+         * La supression en chaîne peut être plus simple à lire et à coder
+         */
+        
+        super._destroyAt(selfTimelineEpoch)
+        // supprimer les données suivantes
+        this.#children.forEach(child => {
+            const childTimeLineEpoch = selfTimelineEpoch - child.creationParentTimeLineEpoch
+            if (childTimeLineEpoch <= 0) {
+                child.timeObject.destroyAt(0)
+            }
+        })
     }
 
     tick() {
@@ -60,16 +103,6 @@ export default class TimeObject extends TimeSprite {
             },
             propagationSelfTimeLineEpoch
         }
-    }
-
-    /**
-     * 
-     * @param {THREE.Vector2} translationTrust 
-     * @param {number} rotationThrust 
-     */
-    thrust(translationThrust, rotationThrust) {
-        this.#temporaryTranslationThrust = translationThrust
-        this.#temporaryRotationThrust = rotationThrust
     }
 
     #changeSpaceSpeed () {

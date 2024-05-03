@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import GlobalRules from '../globalRules'
 
 export default class TimeSprite {
     #scene
@@ -8,6 +9,7 @@ export default class TimeSprite {
     
     #maps
     #rectangle
+    #pastRectangle
 
     #selfTimeLineSpaceTimePosition = []
     get selfTimeLineSpaceTimePosition () { return this.#selfTimeLineSpaceTimePosition }
@@ -46,14 +48,14 @@ export default class TimeSprite {
     static #playerEpochContinuumSpriteColor = 0xA09090
     static #playerEpochContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff
-    static #lineOpacity = 0.2
+    static #lineOpacity = 0.5
 
     /**
      * 
      * @param {Scene} scene 
      * @param {TextureLoader} textureLoader 
      * @param {{colorMap: image, alphaMap: image}} maps
-     * @param {{pastSpriteDelay: number, pastSpriteStart: number, getZAtEpoch: function}} globalRules
+     * @param {GlobalRules} globalRules
      * @param {number} width positive integer
      * @param {number} height positive integer
      * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} initialSpaceTimePosition
@@ -64,6 +66,8 @@ export default class TimeSprite {
         this.#globalRules = globalRules
         this.#maps = maps
         this.#rectangle = new THREE.PlaneGeometry(height, width)
+        const scale = globalRules.pastSpriteFactor
+        this.#pastRectangle = new THREE.PlaneGeometry(height * scale, width * scale)
         this.#propagationSprite = this.#createSprite(TimeSprite.#propagationSpriteColor, TimeSprite.#propagationSpriteOpacity)
         const usedTickData = {
             mainTimeLineEpoch: 0,
@@ -74,13 +78,14 @@ export default class TimeSprite {
         this.newSpaceTimePosition(usedTickData, 0)
     }
 
-    /**
-     * 
-     * @param {number} selfTimelineEpoch integer >= 0 or -1 for latest epoch
-     */
-    // setActiveAt (selfTimelineEpoch) {
-    //     if (selfTimelineEpoch == -1) this.#setSpriteToSelfTimeLineEpoch(this.#propagationSprite, sel)
-    // }
+    _destroyAt (selfTimelineEpoch) {
+        // TODO: voir comment supprimer proprement des éléments dans THREE.js
+
+        // si avant la création, simplement tout supprimer
+        // supprimer les éléments suivant cette époque
+        // supprimer le sprite final du dernier continuum
+        // créer un sprite de destruction pour le dernier continuum
+    }
 
     /**
      * 
@@ -219,7 +224,7 @@ export default class TimeSprite {
         const index = selfTimelineEpoch / pastSpriteDelay
         let sprite = this.#pastSprites[index]
         if (!sprite) {
-            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, false)
+            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, false, true)
             this.#pastSprites[index] = sprite
         }
         this.#setSpriteToSelfTimeLineEpoch(sprite, selfTimelineEpoch)
@@ -230,9 +235,10 @@ export default class TimeSprite {
      * @param {image} colorMap
      * @param {image} alphaMap
      * @param {boolean} addToScene default true
+     * @param {boolean} isPastSprite default false
      * @returns {THREE.Mesh} created sprite
      */
-    #createSprite (color, opacity, applyMap = true) {
+    #createSprite (color, opacity, applyMap = true, isPastSprite = false) {
         const texture = new THREE.MeshBasicMaterial({ color, opacity, transparent: true })
         texture.side = THREE.DoubleSide
 
@@ -246,7 +252,8 @@ export default class TimeSprite {
         alphaTexture.colorSpace = THREE.SRGBColorSpace
         texture.alphaMap = alphaTexture
 
-        const sprite = new THREE.Mesh(this.#rectangle, texture)
+        const rectangle = isPastSprite ? this.#pastRectangle : this.#rectangle
+        const sprite = new THREE.Mesh(rectangle, texture)
         this.#scene.add(sprite)
         
         return sprite
@@ -292,16 +299,8 @@ export default class TimeSprite {
         const lineStarts = mainTimeLineEpoch != lastMainTimeLineEpoch + 1
         return lineStarts
     }
-
-    _vector3From(vector2, epoch) {
-        return new THREE.Vector3(
-            vector2.x,
-            vector2.y,
-            this.#globalRules.getZAtEpoch(epoch)
-        )
-    }
     
     #getPointInSpace(spaceTimePosition) {
-        return this._vector3From (spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
+        return this.#globalRules.vector3From(spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
     }
 }
