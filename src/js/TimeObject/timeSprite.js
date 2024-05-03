@@ -33,6 +33,10 @@ export default class TimeSprite {
         this.#propagationSelfTimeLineEpoch = selfTimelineEpoch
     }
 
+    get propagationSpaceTimePosition () {
+        return this.#selfTimeLineSpaceTimePosition[this.#propagationSelfTimeLineEpoch]
+    }
+
     #continuums = []
     #pastSprites = []
     #segments = []
@@ -40,15 +44,15 @@ export default class TimeSprite {
     static #propagationSpriteColor = 0xffffff
     static #propagationSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
-    static #pastSpriteOpacity = 0.3
+    static #pastSpriteOpacity = 0.2
     static #firstContinuumSpriteColor = 0x00ffff
-    static #firstContinuumSpriteOpacity = 0.8
+    static #firstContinuumSpriteOpacity = 0.4
     static #lastContinuumSpriteColor = 0x00ffff
-    static #lastContinuumSpriteOpacity = 0.8
+    static #lastContinuumSpriteOpacity = 0.4
     static #playerEpochContinuumSpriteColor = 0xA09090
     static #playerEpochContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff
-    static #lineOpacity = 0.5
+    static #lineOpacity = 0.2
 
     /**
      * 

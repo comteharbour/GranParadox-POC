@@ -4,6 +4,9 @@ import TimeSprite from "./timeSprite"
 export default class TimeObject extends TimeSprite {
 
     #spaceSpeeds = []
+    get spaceSpeed () {
+        return this.#spaceSpeeds[this.propagationSelfTimeLineEpoch]
+    }
     #hitBox2D
     #orientedHitBoxes = []
     #temporarySpaceTimeMovement
@@ -33,12 +36,18 @@ export default class TimeObject extends TimeSprite {
 
     /**
      * 
-     * @param {THREE.Vector2} translationTrust 
-     * @param {number} rotationThrust 
+     * @param {THREE.Vector2} acceleration 
      */
-    thrust(translationThrust, rotationThrust) {
-        this.#temporaryTranslationThrust = translationThrust
-        this.#temporaryRotationThrust = rotationThrust
+    accelerateTranslation(acceleration) {
+        this.#temporaryTranslationThrust.add(acceleration)
+    }
+
+    /**
+     * 
+     * @param {number} acceleration 
+     */
+    accelerateRotation(acceleration) {
+        this.#temporaryRotationThrust += acceleration
     }
 
     /**
@@ -63,7 +72,7 @@ export default class TimeObject extends TimeSprite {
          * La supression en chaîne peut être plus simple à lire et à coder
          */
 
-        super._destroyAt(selfTimelineEpoch)
+        this._destroyAt(selfTimelineEpoch)
         // supprimer les données suivantes
         this.#children.forEach(child => {
             const childTimeLineEpoch = selfTimelineEpoch - child.creationParentTimeLineEpoch
@@ -79,17 +88,18 @@ export default class TimeObject extends TimeSprite {
         this.#changeSpaceSpeed()
         this.#changeSpaceTimePosition()
 
-        this.#createHitBox()
-
         this.#handleBorder()
+
+        this.#createHitBox()
+        // gérer les collisions
 
         this.#setNewMovementValues()
         this.#eraseTemporaryData()
     }
 
     #setTemporarySpaceTimePositionAndPropagation () {
-        const lastPropagationSelfTimeLineEpoch = super.propagationSelfTimeLineEpoch
-        const lastSpaceTimePosition = super.selfTimeLineSpaceTimePosition[lastPropagationSelfTimeLineEpoch]
+        const lastPropagationSelfTimeLineEpoch = this.propagationSelfTimeLineEpoch
+        const lastSpaceTimePosition = this.selfTimeLineSpaceTimePosition[lastPropagationSelfTimeLineEpoch]
         const spaceSpeed = this.#spaceSpeeds[lastPropagationSelfTimeLineEpoch]
         const propagationSelfTimeLineEpoch = lastPropagationSelfTimeLineEpoch + 1
         this.#temporarySpaceTimeMovement = {
@@ -119,7 +129,7 @@ export default class TimeObject extends TimeSprite {
         this.#temporarySpaceTimeMovement.spaceTimePosition.position2D.add(this.#temporarySpaceTimeMovement.spaceSpeed.speed2D)
         this.#temporarySpaceTimeMovement.spaceTimePosition.rotation += this.#temporarySpaceTimeMovement.spaceSpeed.rotationSpeed
 
-        const mainTimeLineEpoch = (this.#temporarySpaceTimeMovement.spaceTimePosition.mainTimeLineEpoch + 1) % super.globalRules.totalTicks
+        const mainTimeLineEpoch = (this.#temporarySpaceTimeMovement.spaceTimePosition.mainTimeLineEpoch + 1) % this.globalRules.totalTicks
         this.#temporarySpaceTimeMovement.spaceTimePosition.mainTimeLineEpoch = mainTimeLineEpoch
     }
 
@@ -133,9 +143,9 @@ export default class TimeObject extends TimeSprite {
     #isOutOfBounds () {
         const spaceTimePosition = this.#temporarySpaceTimeMovement.spaceTimePosition
         const xPosition = spaceTimePosition.position2D.x
-        const xBoundary = super.globalRules.fieldWidth / 2
+        const xBoundary = this.globalRules.fieldWidth / 2
         const yPosition = spaceTimePosition.position2D.y
-        const yBoundary = super.globalRules.fieldHeight / 2
+        const yBoundary = this.globalRules.fieldHeight / 2
         const x = xPosition <= -xBoundary || xPosition >= xBoundary
         const y = yPosition <= -yBoundary || yPosition >= yBoundary
         return { x, y }
@@ -175,13 +185,13 @@ export default class TimeObject extends TimeSprite {
     #setNewMovementValues () {
         const propagationSelfTimeLineEpoch = this.#temporarySpaceTimeMovement.propagationSelfTimeLineEpoch
         this.#spaceSpeeds[propagationSelfTimeLineEpoch] = this.#temporarySpaceTimeMovement.spaceSpeed
-        super.newSpaceTimePosition(this.#temporarySpaceTimeMovement.spaceTimePosition, propagationSelfTimeLineEpoch)
-        super.propagationSelfTimeLineEpoch = propagationSelfTimeLineEpoch
+        this.newSpaceTimePosition(this.#temporarySpaceTimeMovement.spaceTimePosition, propagationSelfTimeLineEpoch)
+        this.propagationSelfTimeLineEpoch = propagationSelfTimeLineEpoch
     }
 
     #eraseTemporaryData () {
         this.#temporarySpaceTimeMovement = undefined
-        this.#temporaryTranslationThrust = undefined
-        this.#temporaryRotationThrust = undefined
+        this.#temporaryTranslationThrust = new THREE.Vector2()
+        this.#temporaryRotationThrust = 0
     }
 }

@@ -5,6 +5,7 @@ import { ControlsManager } from './controlsManager.js'
 import GlobalRules from './globalRules.js'
 import TimeSprite from './TimeObject/timeSprite.js'
 import TimeObject from './TimeObject/timeObject.js'
+import TimePlayer from './TimeObject/timePlayer.js'
 import Boundary from './boundary.js'
 import sprites from './assetsManager/sprites.js'
 
@@ -13,15 +14,15 @@ const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
 
 const renderSpeed = 1
-const nbContinuums = 2
+const nbContinuums = 6
 
-const totalTicks = 1000 / renderSpeed
+const totalTicks = 2000 / renderSpeed
 const fieldWidth = 1500
 const fieldHeight = 1000
 const pastSpriteStart = Math.floor(0 / renderSpeed)
 const pastSpriteDelay = Math.floor(23 / renderSpeed)
 const pastSpriteFactor = 0.5
-const zPerTick = 1
+const zPerTick = 1 * renderSpeed
 const globalRules = new GlobalRules ({
     totalTicks,
     fieldWidth,
@@ -78,17 +79,17 @@ const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundar
 // const start = Date.now()
 // while (Date.now() < start + 1000) { console.log('waiting') }
 
-const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
+// const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
-const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {position2D: new THREE.Vector2(0,0)}, {speed2D: new THREE.Vector2(1, 1), rotationSpeed: Math.PI / 100}, hitBox2D, 1)
+const timePlayer = new TimePlayer(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {position2D: new THREE.Vector2(0,0)}, {speed2D: new THREE.Vector2(1, 1).multiplyScalar(renderSpeed), rotationSpeed: Math.PI / 100 * renderSpeed}, hitBox2D, 1)
 
 let elapsedTicks = 0
 const runTick = () => {
     if (elapsedTicks < globalRules.totalTicks * nbContinuums) {
         // timeSprite.newSpaceTimePosition(data(elapsedTicks), elapsedTicks)
         // timeSprite.propagationSelfTimeLineEpoch = Math.floor(elapsedTicks)
-        timeObject.tick()
+        timePlayer.tick()
         boundary.setEpoch(elapsedTicks % globalRules.totalTicks)
     
         elapsedTicks++
