@@ -45,11 +45,11 @@ export default class TimeSprite {
     static #propagationSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
     static #pastSpriteOpacity = 0.1
-    static #pastSpriteFactor = 0.6
+    static #pastSpriteFactor = 0.5
     static #firstContinuumSpriteColor = 0x00ffff
-    static #firstContinuumSpriteOpacity = 0.4
+    static #firstContinuumSpriteOpacity = 1
     static #lastContinuumSpriteColor = 0x00ffff
-    static #lastContinuumSpriteOpacity = 0.4
+    static #lastContinuumSpriteOpacity = 1
     static #playerEpochContinuumSpriteColor = 0xA09090
     static #playerEpochContinuumSpriteOpacity = 1
     static #lineColor = 0x00ffff

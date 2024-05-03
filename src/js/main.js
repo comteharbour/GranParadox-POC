@@ -33,7 +33,7 @@ const globalRules = new GlobalRules ({
     zPerTick
 })
 
-const cameraFOV = 50,
+const cameraFOV = 60,
 cameraMargin = 10
 
 const viewManager = new ViewManager(globalRules, scene, cameraFOV, cameraMargin)

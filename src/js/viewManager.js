@@ -20,7 +20,8 @@ export class ViewManager {
 
     /**
      * 
-     * @param {{zPerTick: number}} globalRules
+     * @param {GlobalRules} globalRules
+     * @param {THREE.Scene} scene 
      * @param {number} cameraFOV 
      * @param {number} cameraMargin 
      */
@@ -30,6 +31,7 @@ export class ViewManager {
         this.#cameraFOV = cameraFOV
         this.#cameraMargin = cameraMargin
         this.#updateSizes()
+        scene.fog = new THREE.Fog( 0x000000, this.#cameraNearEnd, this.#cameraFarEnd * 1.5 );
         this.#initializeCamera(scene)
         this.#initializeRenderer()
         this.#initializeControls()
