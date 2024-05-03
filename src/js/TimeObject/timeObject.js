@@ -7,8 +7,8 @@ export default class TimeObject extends TimeSprite {
     #hitBox2D
     #orientedHitBoxes = []
     #temporarySpaceTimeMovement
-    #translationThrust = new THREE.Vector2()
-    #rotationThrust = 0
+    #temporaryTranslationThrust = new THREE.Vector2()
+    #temporaryRotationThrust = 0
 
     /**
      * 
@@ -41,7 +41,7 @@ export default class TimeObject extends TimeSprite {
         this.#handleBorder()
 
         this.#setNewMovementValues()
-
+        this.#eraseTemporaryData()
     }
 
     #setTemporarySpaceTimePositionAndPropagation () {
@@ -68,13 +68,17 @@ export default class TimeObject extends TimeSprite {
      * @param {number} rotationThrust 
      */
     thrust(translationThrust, rotationThrust) {
-        this.#translationThrust = translationThrust
-        this.#rotationThrust = rotationThrust
+        this.#temporaryTranslationThrust = translationThrust
+        this.#temporaryRotationThrust = rotationThrust
     }
 
     #changeSpaceSpeed () {
-        this.#temporarySpaceTimeMovement.spaceSpeed.speed2D.add(this.#translationThrust)
-        this.#temporarySpaceTimeMovement.spaceSpeed.rotationSpeed += this.#rotationThrust
+        if (!!this.#temporaryTranslationThrust) {
+            this.#temporarySpaceTimeMovement.spaceSpeed.speed2D.add(this.#temporaryTranslationThrust)
+        }
+        if (!!this.#temporaryRotationThrust) {
+            this.#temporarySpaceTimeMovement.spaceSpeed.rotationSpeed += this.#temporaryRotationThrust
+        }
     }
 
     #changeSpaceTimePosition () {
@@ -141,5 +145,9 @@ export default class TimeObject extends TimeSprite {
         super.propagationSelfTimeLineEpoch = propagationSelfTimeLineEpoch
     }
 
-    #eraseTemporarySpaceTimeMovement () {}
+    #eraseTemporaryData () {
+        this.#temporarySpaceTimeMovement = undefined
+        this.#temporaryTranslationThrust = undefined
+        this.#temporaryRotationThrust = undefined
+    }
 }
