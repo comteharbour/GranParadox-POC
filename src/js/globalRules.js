@@ -8,7 +8,6 @@ export default class GlobalRules {
     #fieldHeight
     #pastSpriteStart
     #pastSpriteDelay
-    #pastSpriteFactor
     #playerMainTimeLineEpoch
 
     /**
@@ -20,14 +19,13 @@ export default class GlobalRules {
      * @param {number} pastSpriteDelay 
      * @param {number} zPerTick 
      */
-    constructor ({ totalTicks, fieldWidth, fieldHeight, pastSpriteStart, pastSpriteDelay, pastSpriteFactor, zPerTick }) {
+    constructor ({ totalTicks, fieldWidth, fieldHeight, pastSpriteStart, pastSpriteDelay, zPerTick }) {
         this.#totalTicks = totalTicks
         this.#zPerTick = zPerTick
         this.#fieldWidth = fieldWidth
         this.#fieldHeight = fieldHeight
         this.#pastSpriteStart = pastSpriteStart
         this.#pastSpriteDelay = pastSpriteDelay
-        this.#pastSpriteFactor = pastSpriteFactor
     }
 
     get totalTicks () { return this.#totalTicks }
@@ -35,7 +33,6 @@ export default class GlobalRules {
     get fieldHeight () { return this.#fieldHeight }
     get pastSpriteStart () { return this.#pastSpriteStart }
     get pastSpriteDelay () { return this.#pastSpriteDelay }
-    get pastSpriteFactor () { return this.#pastSpriteFactor }
     get playerMainTimeLineEpoch () { return this.#playerMainTimeLineEpoch }
     set playerMainTimeLineEpoch (epoch) { this.#playerMainTimeLineEpoch = epoch }
 

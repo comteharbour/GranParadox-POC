@@ -5,9 +5,9 @@ export default class TimePlayer extends TimeObject {
 
     #xInput = 0
     #yInput = 0
-    static #translationThrust = 0.2
+    static #translationThrust = 0.1
     static #rotationThrust = 0.01
-    static #translationFrictionCoefficient = 0.005
+    static #translationFrictionCoefficient = 0.02
     static #rotationFrictionCoefficient = 0.1
     static #rotationMinimalSpeed = 0.003
 
@@ -74,7 +74,7 @@ export default class TimePlayer extends TimeObject {
     #translationFriction () {
         const translationVector = this.spaceSpeed.speed2D.clone()
         const velocity = translationVector.length()
-        const frictionVector = translationVector.multiplyScalar(-velocity * TimePlayer.#translationFrictionCoefficient)
+        const frictionVector = translationVector.multiplyScalar(-TimePlayer.#translationFrictionCoefficient)
         this.accelerateTranslation(frictionVector)
     }
 

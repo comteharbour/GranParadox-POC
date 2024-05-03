@@ -44,7 +44,8 @@ export default class TimeSprite {
     static #propagationSpriteColor = 0xffffff
     static #propagationSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
-    static #pastSpriteOpacity = 0.2
+    static #pastSpriteOpacity = 0.1
+    static #pastSpriteFactor = 0.6
     static #firstContinuumSpriteColor = 0x00ffff
     static #firstContinuumSpriteOpacity = 0.4
     static #lastContinuumSpriteColor = 0x00ffff
@@ -70,7 +71,7 @@ export default class TimeSprite {
         this.#globalRules = globalRules
         this.#maps = maps
         this.#rectangle = new THREE.PlaneGeometry(height, width)
-        const scale = globalRules.pastSpriteFactor
+        const scale = TimeSprite.#pastSpriteFactor
         this.#pastRectangle = new THREE.PlaneGeometry(height * scale, width * scale)
         this.#propagationSprite = this.#createSprite(TimeSprite.#propagationSpriteColor, TimeSprite.#propagationSpriteOpacity)
         const usedTickData = {
