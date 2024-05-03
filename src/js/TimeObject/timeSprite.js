@@ -4,6 +4,8 @@ export default class TimeSprite {
     #scene
     #textureLoader
     #globalRules
+    get globalRules () { return this.#globalRules }
+    
     #maps
     #rectangle
 

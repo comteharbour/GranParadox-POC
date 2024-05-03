@@ -66,8 +66,7 @@ const boundary = new Boundary(globalRules, scene, textureLoader, sprites.boundar
 const timeSprite = new TimeSprite(scene, textureLoader, globalRules, 40, 50, sprites.ship1)
 
 const hitBox2D = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]
-const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {position2D: new THREE.Vector2(100,100)}, {speed2D: new THREE.Vector2(1, 1), rotationSpeed: Math.PI / 100}, hitBox2D, 1)
-
+const timeObject = new TimeObject(scene, textureLoader, globalRules, 40, 50, sprites.ship1, {position2D: new THREE.Vector2(0,0)}, {speed2D: new THREE.Vector2(10, 5), rotationSpeed: Math.PI / 100}, hitBox2D, 1)
 
 let elapsedTicks = 0
 const runTick = () => {
