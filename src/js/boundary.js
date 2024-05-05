@@ -3,17 +3,23 @@ import * as THREE from 'three'
 export default class Boundary {
     
     #activeEpochBorder
+    #activeEpochFloor
     #globalRules
+
+    static #floorColor = 0x00FFFF
+    static #floorOpacity = 0.15
 
     constructor (globalRules, scene, textureLoader, sprites) {
         this.#globalRules = globalRules
         this.#createBottom(globalRules, scene, textureLoader, sprites)
         this.#createVerticalBorders(globalRules, scene, textureLoader, sprites)
         this.#createActiveEpochBorder(globalRules, scene)
+        this.#createActiveEpochFloor(globalRules, scene)
     }
 
     setEpoch (epoch) {
         this.#activeEpochBorder.position.z = this.#globalRules.getZAtEpoch(epoch)
+        this.#activeEpochFloor.position.z = this.#globalRules.getZAtEpoch(epoch)
     }
 
     #createBottom (globalRules, scene, textureLoader, sprites) {
@@ -74,5 +80,12 @@ export default class Boundary {
         const geometryLine = new THREE.BufferGeometry().setFromPoints(points)
         this.#activeEpochBorder = new THREE.LineLoop( geometryLine, materialLine )
         scene.add(this.#activeEpochBorder)
+    }
+
+    #createActiveEpochFloor (globalRules, scene) {
+        const geometry = new THREE.PlaneGeometry(globalRules.fieldWidth, globalRules.fieldHeight)
+        const material = new THREE.MeshBasicMaterial({ color: Boundary.#floorColor, transparent: true, opacity: Boundary.#floorOpacity })
+        this.#activeEpochFloor = new THREE.Mesh( geometry, material )
+        scene.add(this.#activeEpochFloor)
     }
 }
