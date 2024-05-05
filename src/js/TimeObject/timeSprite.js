@@ -84,6 +84,12 @@ export default class TimeSprite {
     }
 
     _destroyAt (selfTimelineEpoch) {
+        if (this.#pastSprites[selfTimelineEpoch]) {
+            const pastSprite = this.#pastSprites[selfTimelineEpoch]
+            pastSprite.geometry.dispose()
+            pastSprite.material.dispose()
+            this.#scene.remove(pastSprite)
+        }
         // TODO: voir comment supprimer proprement des éléments dans THREE.js
 
         // si avant la création, simplement tout supprimer
@@ -102,6 +108,8 @@ export default class TimeSprite {
         this.#handleContinuums(spaceTimePosition, selfTimelineEpoch)
         this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
+
+        if (selfTimelineEpoch >= 500) this._destroyAt(selfTimelineEpoch - 500)
     }
 
     /**
@@ -226,11 +234,10 @@ export default class TimeSprite {
         const pastSpriteDelay = this.#globalRules.pastSpriteDelay
         if (selfTimelineEpoch % pastSpriteDelay != pastSpriteStart) return
         if (this.#lineStarts(selfTimelineEpoch)) return
-        const index = selfTimelineEpoch / pastSpriteDelay
-        let sprite = this.#pastSprites[index]
+        let sprite = this.#pastSprites[selfTimelineEpoch]
         if (!sprite) {
             sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, false, true)
-            this.#pastSprites[index] = sprite
+            this.#pastSprites[selfTimelineEpoch] = sprite
         }
         this.#setSpriteToSelfTimeLineEpoch(sprite, selfTimelineEpoch)
     }
