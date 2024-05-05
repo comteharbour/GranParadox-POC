@@ -16,7 +16,7 @@ const textureLoader = new THREE.TextureLoader(loadingManager)
 const renderSpeed = 1
 const nbContinuums = 6
 
-const totalTicks = 2000 / renderSpeed
+const totalTicks = 600 / renderSpeed
 const fieldWidth = 1500
 const fieldHeight = 1000
 const pastSpriteStart = Math.floor(0 / renderSpeed)

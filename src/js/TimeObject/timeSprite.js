@@ -83,21 +83,6 @@ export default class TimeSprite {
         this.newSpaceTimePosition(usedTickData, 0)
     }
 
-    _destroyAt (selfTimelineEpoch) {
-        if (this.#pastSprites[selfTimelineEpoch]) {
-            const pastSprite = this.#pastSprites[selfTimelineEpoch]
-            pastSprite.geometry.dispose()
-            pastSprite.material.dispose()
-            this.#scene.remove(pastSprite)
-        }
-        // TODO: voir comment supprimer proprement des éléments dans THREE.js
-
-        // si avant la création, simplement tout supprimer
-        // supprimer les éléments suivant cette époque
-        // supprimer le sprite final du dernier continuum
-        // créer un sprite de destruction pour le dernier continuum
-    }
-
     /**
      * 
      * @param {{mainTimeLineEpoch: number, position2D: Vector2, rotation: number}} spaceTimePosition
@@ -109,7 +94,54 @@ export default class TimeSprite {
         this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
 
-        if (selfTimelineEpoch >= 500) this._destroyAt(selfTimelineEpoch - 500)
+        if (selfTimelineEpoch >= 500) this._destroyAt(selfTimelineEpoch - 300)
+    }
+
+    _destroyAt (selfTimelineEpoch) {
+        this.#cleanRemove (this.#pastSprites[selfTimelineEpoch])
+        this.#cleanRemove (this.#segments[selfTimelineEpoch])
+
+        // continuum
+        const continuumIndex = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex
+        const continuum = this.#continuums[continuumIndex]
+
+        /**
+         * IMPORTANT : Si destruction en cours de continuum,
+         * il faudra probalbement DUPLIQUER le continuum
+         * afin de distinguer la partie conservée et la partie en cours de destruction
+         * PRENDRE LE TEMPS DE REFLACHIR A CE PROBLEME !!!
+         */
+        if (continuum.firstMainTimeLineEpoch < selfTimelineEpoch) {
+            this.#closeContinuum(selfTimelineEpoch)
+        }
+        if (!continuum.destructionMainTimeLineEpoch) {
+
+        }
+        const destructionMainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
+
+        // tout faire disparaître si destruction au dernier tick du continuum
+        const lastSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(continuum.lastMainTimeLineEpoch)
+        if (selfTimelineEpoch == lastSelfTimeLineEpoch) {
+            this.#cleanRemove(continuum.sprites.first)
+            this.#cleanRemove(continuum.sprites.playerEpoch)
+            this.#cleanRemove(continuum.sprites.last)
+            this.#continuums[continuumIndex] = undefined
+        } else {
+            this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.first, selfTimelineEpoch)
+        }
+        /**
+         * start: placer à la prochaine position existante
+         * active: faire disparaître si époque dépassée
+         * tout supprimer si tout le continuum est détruit
+         */
+
+        
+        // TODO: voir comment supprimer proprement des éléments dans THREE.js
+
+        // si avant la création, simplement tout supprimer
+        // supprimer les éléments suivant cette époque
+        // supprimer le sprite final du dernier continuum
+        // créer un sprite de destruction pour le dernier continuum
     }
 
     /**
@@ -175,12 +207,16 @@ export default class TimeSprite {
 
     #closeLastContinuum (selfTimelineEpoch) {
         if (selfTimelineEpoch > 0) {
-            const last = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch - 1]
-            const continuum = this.#continuums[last.continuumIndex]
-            continuum.lastMainTimeLineEpoch = last.mainTimeLineEpoch
-            this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(last.mainTimeLineEpoch))
-            continuum.sprites.last.visible = true
+            this.#closeContinuum (selfTimelineEpoch - 1)
         }
+    }
+
+    #closeContinuum (selfTimelineEpoch) {
+        const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
+        const continuum = this.#continuums[spaceTimePosition.continuumIndex]
+        continuum.spaceTimePositionMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
+        this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(spaceTimePosition.mainTimeLineEpoch))
+        continuum.sprites.last.visible = true
     }
 
     #openContinuum (spaceTimePosition, selfTimelineEpoch) {
@@ -204,13 +240,15 @@ export default class TimeSprite {
     #handleActiveContinuumSprites (selfTimelineEpoch) {
         const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
         this.#continuums.forEach(continuum => {
-            const propagationSprite = continuum.sprites.playerEpoch
-            if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
-                const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
-                this.#setSpriteToSelfTimeLineEpoch(propagationSprite, continuumSelfTimeLineEpoch)
-                propagationSprite.visible = true
-            } else {
-                propagationSprite.visible = false
+            if (continuum) {
+                const propagationSprite = continuum.sprites.playerEpoch
+                if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
+                    const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
+                    this.#setSpriteToSelfTimeLineEpoch(propagationSprite, continuumSelfTimeLineEpoch)
+                    propagationSprite.visible = true
+                } else {
+                    propagationSprite.visible = false
+                }
             }
         })
     }
@@ -314,5 +352,14 @@ export default class TimeSprite {
     
     #getPointInSpace(spaceTimePosition) {
         return this.#globalRules.vector3From(spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
+    }
+
+    #cleanRemove (object) {
+        if (object) {
+            object.geometry.dispose()
+            object.material.dispose()
+            this.#scene.remove(object)
+            object = null
+        }
     }
 }
