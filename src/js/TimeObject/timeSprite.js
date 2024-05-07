@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import Sprite from './sprite'
 import GlobalRules from '../globalRules'
 
 export default class TimeSprite {
@@ -8,6 +9,8 @@ export default class TimeSprite {
     get globalRules () { return this.#globalRules }
     
     #maps
+    #width
+    #height
     #rectangle
     #pastRectangle
 
@@ -70,6 +73,8 @@ export default class TimeSprite {
         this.#textureLoader = textureLoader
         this.#globalRules = globalRules
         this.#maps = maps
+        this.#width = width
+        this.#height = height
         this.#rectangle = new THREE.PlaneGeometry(height, width)
         const scale = TimeSprite.#pastSpriteFactor
         this.#pastRectangle = new THREE.PlaneGeometry(height * scale, width * scale)
@@ -94,12 +99,18 @@ export default class TimeSprite {
         this.#handlePastSprite(selfTimelineEpoch)
         this.#handleLine(selfTimelineEpoch)
 
-        if (selfTimelineEpoch >= 500) this._destroyAt(selfTimelineEpoch - 300)
+        // if (selfTimelineEpoch >= 500) this._destroyAt(selfTimelineEpoch - 300)
     }
 
     _destroyAt (selfTimelineEpoch) {
-        this.#cleanRemove (this.#pastSprites[selfTimelineEpoch])
-        this.#cleanRemove (this.#segments[selfTimelineEpoch])
+        const pastSprite = this.#pastSprites[selfTimelineEpoch]
+        if (pastSprite) {
+            pastSprite.visible = false
+        }
+        const segment = this.#segments[selfTimelineEpoch]
+        if (segment) {
+            segment.visible = false
+        }
 
         // continuum
         const continuumIndex = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].continuumIndex
@@ -122,9 +133,9 @@ export default class TimeSprite {
         // tout faire disparaître si destruction au dernier tick du continuum
         const lastSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(continuum.lastMainTimeLineEpoch)
         if (selfTimelineEpoch == lastSelfTimeLineEpoch) {
-            this.#cleanRemove(continuum.sprites.first)
-            this.#cleanRemove(continuum.sprites.playerEpoch)
-            this.#cleanRemove(continuum.sprites.last)
+            continuum.sprites.first.remove()
+            continuum.sprites.playerEpoch.remove()
+            continuum.sprites.last.remove()
             this.#continuums[continuumIndex] = undefined
         } else {
             this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.first, selfTimelineEpoch)
@@ -214,7 +225,7 @@ export default class TimeSprite {
     #closeContinuum (selfTimelineEpoch) {
         const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
         const continuum = this.#continuums[spaceTimePosition.continuumIndex]
-        continuum.spaceTimePositionMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
+        continuum.lastMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
         this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(spaceTimePosition.mainTimeLineEpoch))
         continuum.sprites.last.visible = true
     }
@@ -289,30 +300,22 @@ export default class TimeSprite {
      * @returns {THREE.Mesh} created sprite
      */
     #createSprite (color, opacity, applyMap = true, isPastSprite = false) {
-        const texture = new THREE.MeshBasicMaterial({ color, opacity, transparent: true })
-        texture.side = THREE.DoubleSide
-
-        if (applyMap) {
-            const colorTexture = this.#textureLoader.load(this.#maps.colorMap)
-            colorTexture.colorSpace = THREE.SRGBColorSpace
-            texture.map = colorTexture
+        const width = isPastSprite ? this.#width * TimeSprite.#pastSpriteFactor : this.#width
+        const height = isPastSprite ? this.#height * TimeSprite.#pastSpriteFactor : this.#height
+        const maps = {
+            ...this.#maps,
+            colorMap: applyMap ? this.#maps.colorMap : null,
         }
 
-        const alphaTexture = this.#textureLoader.load(this.#maps.alphaMap)
-        alphaTexture.colorSpace = THREE.SRGBColorSpace
-        texture.alphaMap = alphaTexture
-
-        const rectangle = isPastSprite ? this.#pastRectangle : this.#rectangle
-        const sprite = new THREE.Mesh(rectangle, texture)
-        this.#scene.add(sprite)
+        const sprite = new Sprite(this.#scene, this.#textureLoader, width, height, maps, color, opacity)
         
         return sprite
     }
 
     #setSpriteToSelfTimeLineEpoch (sprite, selfTimelineEpoch) {
         const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
-        sprite.position.copy(this.#getPointInSpace(spaceTimePosition))
-        sprite.setRotationFromAxisAngle(new THREE.Vector3(0, 0, 1), spaceTimePosition.rotation)
+        sprite.position = this.#getPointInSpace(spaceTimePosition)
+        sprite.rotation = spaceTimePosition.rotation
     }
 
     #handleLine (selfTimelineEpoch) {
@@ -352,14 +355,5 @@ export default class TimeSprite {
     
     #getPointInSpace(spaceTimePosition) {
         return this.#globalRules.vector3From(spaceTimePosition.position2D, spaceTimePosition.mainTimeLineEpoch)
-    }
-
-    #cleanRemove (object) {
-        if (object) {
-            object.geometry.dispose()
-            object.material.dispose()
-            this.#scene.remove(object)
-            object = null
-        }
     }
 }
