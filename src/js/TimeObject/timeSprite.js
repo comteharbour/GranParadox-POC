@@ -12,8 +12,6 @@ export default class TimeSprite {
     #maps
     #width
     #height
-    #rectangle
-    #pastRectangle
 
     #selfTimeLineSpaceTimePosition = []
     get selfTimeLineSpaceTimePosition () { return this.#selfTimeLineSpaceTimePosition }
@@ -42,7 +40,6 @@ export default class TimeSprite {
     }
 
     #continuums = []
-    #continuumsNEW = []
     #pastSprites = []
     #segments = []
 
@@ -50,13 +47,7 @@ export default class TimeSprite {
     static #propagationSpriteOpacity = 1
     static #pastSpriteColor = 0x00ffff
     static #pastSpriteOpacity = 0.1
-    static #pastSpriteFactor = 0.5
-    static #firstContinuumSpriteColor = 0xff0000
-    static #firstContinuumSpriteOpacity = 0.3
-    static #lastContinuumSpriteColor = 0xff0000
-    static #lastContinuumSpriteOpacity = 0.3
-    static #playerEpochContinuumSpriteColor = 0xff0000
-    static #playerEpochContinuumSpriteOpacity = 0.3
+    static #pastSpriteScale = 0.5
     static #lineColor = 0x00ffff
     static #lineOpacity = 0.2
 
@@ -77,9 +68,7 @@ export default class TimeSprite {
         this.#maps = maps
         this.#width = width
         this.#height = height
-        this.#rectangle = new THREE.PlaneGeometry(height, width)
-        const scale = TimeSprite.#pastSpriteFactor
-        this.#pastRectangle = new THREE.PlaneGeometry(height * scale, width * scale)
+        const scale = TimeSprite.#pastSpriteScale
         this.#propagationSprite = this.#createSprite(TimeSprite.#propagationSpriteColor, TimeSprite.#propagationSpriteOpacity)
         const usedTickData = {
             mainTimeLineEpoch: 0,
@@ -204,8 +193,7 @@ export default class TimeSprite {
          */
         if (this.#lineStarts (selfTimelineEpoch) && !this.#continuumExists(selfTimelineEpoch)) {
             this.#closeLastContinuum (selfTimelineEpoch)
-            const continuumIndex = this.#openContinuum(spaceTimePosition, selfTimelineEpoch)
-            this.#createContinuumSprites (continuumIndex, selfTimelineEpoch)
+            this.#openContinuum(spaceTimePosition, selfTimelineEpoch)
             return
         }
         if (this.#lineStarts (selfTimelineEpoch) && this.#continuumExists(selfTimelineEpoch)) {
@@ -227,54 +215,22 @@ export default class TimeSprite {
     #closeContinuum (selfTimelineEpoch) {
         const spaceTimePosition = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch]
         const continuum = this.#continuums[spaceTimePosition.continuumIndex]
-        continuum.lastMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
-        this.#setSpriteToSelfTimeLineEpoch(continuum.sprites.last, continuum.getSelfTimeLineEpoch(spaceTimePosition.mainTimeLineEpoch))
-        continuum.sprites.last.visible = true
-
-        const continuumNEW = this.#continuumsNEW[spaceTimePosition.continuumIndex]
-        continuumNEW.close(selfTimelineEpoch)
+        continuum.close(selfTimelineEpoch)
     }
 
     #openContinuum (spaceTimePosition, firstSelfTimelineEpoch) {
         const continuumIndex = this.#continuums.length
-
         const firstMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
-
-        this.#continuumsNEW[continuumIndex] = new ContinuumSprite(firstSelfTimelineEpoch, firstMainTimeLineEpoch, this.#createSprite.bind(this), this.#setSpriteToSelfTimeLineEpoch.bind(this))
-
-        this.#continuums[continuumIndex] = {}
-        this.#continuums[continuumIndex].firstMainTimeLineEpoch = spaceTimePosition.mainTimeLineEpoch
-        this.#continuums[continuumIndex].getSelfTimeLineEpoch = mainTimeLineEpoch => firstSelfTimelineEpoch + mainTimeLineEpoch - spaceTimePosition.mainTimeLineEpoch // firstSelfTimelineEpoch + (mainTimeLineEpoch - firstMainTimeLineEpoch)
-        
+        const continuum = new ContinuumSprite(firstSelfTimelineEpoch, firstMainTimeLineEpoch, this.#createSprite.bind(this), this.#setSpriteToSelfTimeLineEpoch.bind(this))
+        this.#continuums.push(continuum)
         this.#selfTimeLineSpaceTimePosition[firstSelfTimelineEpoch].continuumIndex = continuumIndex
-        return continuumIndex
-    }
-
-    #createContinuumSprites (continuumIndex, selfTimelineEpoch) {
-        const first = this.#createSprite(TimeSprite.#firstContinuumSpriteColor, TimeSprite.#firstContinuumSpriteOpacity)
-        this.#setSpriteToSelfTimeLineEpoch(first, selfTimelineEpoch)
-        const last = this.#createSprite(TimeSprite.#lastContinuumSpriteColor, TimeSprite.#lastContinuumSpriteOpacity)
-        last.visible = false
-        const playerEpoch = this.#createSprite(TimeSprite.#playerEpochContinuumSpriteColor, TimeSprite.#playerEpochContinuumSpriteOpacity)
-        this.#continuums[continuumIndex].sprites = { first, last, playerEpoch }
     }
 
     #handleActiveContinuumSprites (selfTimelineEpoch) {
         const mainTimeLineEpoch = this.#selfTimeLineSpaceTimePosition[selfTimelineEpoch].mainTimeLineEpoch
-        this.#continuumsNEW.forEach(continuum => continuum.showEpoch(mainTimeLineEpoch))
-
         this.#continuums.forEach(continuum => {
-            if (continuum) {
-                const propagationSprite = continuum.sprites.playerEpoch
-                if (mainTimeLineEpoch >= continuum.firstMainTimeLineEpoch && (continuum.lastMainTimeLineEpoch != undefined || mainTimeLineEpoch <= continuum.lastMainTimeLineEpoch) ) {
-                    const continuumSelfTimeLineEpoch = continuum.getSelfTimeLineEpoch(mainTimeLineEpoch)
-                    this.#setSpriteToSelfTimeLineEpoch(propagationSprite, continuumSelfTimeLineEpoch)
-                    propagationSprite.visible = true
-                } else {
-                    propagationSprite.visible = false
-                }
-            }
-        })
+            continuum.showEpoch(mainTimeLineEpoch)
+    })
     }
 
     // #extrapolateLastTickData (data, selfTimelineEpoch) {
@@ -298,7 +254,7 @@ export default class TimeSprite {
         if (this.#lineStarts(selfTimelineEpoch)) return
         let sprite = this.#pastSprites[selfTimelineEpoch]
         if (!sprite) {
-            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, TimeSprite.#pastSpriteFactor, false)
+            sprite = this.#createSprite(TimeSprite.#pastSpriteColor, TimeSprite.#pastSpriteOpacity, TimeSprite.#pastSpriteScale, false)
             this.#pastSprites[selfTimelineEpoch] = sprite
         }
         this.#setSpriteToSelfTimeLineEpoch(sprite, selfTimelineEpoch)

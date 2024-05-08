@@ -80,7 +80,8 @@ export default class ContinuumSprite {
         const isNotTooSoon = playerMainTimeLineEpoch >= this.#firstMainTimeLineEpoch
         const isNotTooLate = playerMainTimeLineEpoch <= this.#lastMainTimeLineEpoch
         if (isNotTooSoon && isNotTooLate) {
-            this.#setSpriteToSelfTimeLineEpoch(this.#sprites.playerEpoch, this.#getSelfEpoch(playerMainTimeLineEpoch))
+            const playerSelfTimeLineEpoch = this.#getSelfEpoch(playerMainTimeLineEpoch)
+            this.#setSpriteToSelfTimeLineEpoch(this.#sprites.playerEpoch, playerSelfTimeLineEpoch)
             this.#sprites.playerEpoch.visible = true
         } else {
             this.#sprites.playerEpoch.visible = false
